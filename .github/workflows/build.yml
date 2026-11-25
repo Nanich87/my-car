@@ -18,24 +18,24 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
-
       # NativeScript CLI проверява и emulator (`emulator -help`) и adb (platform-tools).
       # Системен образ не е нужен – билдът не пуска емулатор.
       - name: Android SDK 36 + emulator
-        run: sdkmanager --install "platform-tools" "emulator" "platforms;android-36" "build-tools;36.0.0"
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools emulator platforms;android-36 build-tools;36.0.0
 
       - name: Зависимости
         run: npm ci
@@ -54,7 +54,7 @@ jobs:
         run: ns build android
 
       - name: Качване на APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: my-car-debug-apk
           path: platforms/android/app/build/outputs/apk/debug/*.apk
