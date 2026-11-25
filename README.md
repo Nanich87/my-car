@@ -5,6 +5,10 @@
 <h1 align="center">Моята кола</h1>
 
 <p align="center">
+  <a href="https://github.com/Nanich87/my-car/actions/workflows/build.yml"><img src="https://github.com/Nanich87/my-car/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
+</p>
+
+<p align="center">
   Мобилно приложение за записване на разходите по личните автомобили, обслужването и сроковете на винетка, гражданска отговорност и технически преглед.<br/>
   Написано на <a href="https://nativescript.org/">NativeScript</a> (TypeScript).
 </p>
@@ -46,6 +50,8 @@ npm install
 ns run android          # на свързан телефон или емулатор
 ns build android        # APK в platforms/android/app/build/outputs/apk/
 ```
+
+При всеки push в `main` и при всеки pull request [GitHub Actions](.github/workflows/build.yml) проверява типовете и сглобява debug APK, който може да се изтегли от страницата на билда (раздел *Artifacts*).
 
 Приложението е пробвано на Android. iOS ресурсите (икона, име) са подготвени, но не е пускано на iPhone.
 

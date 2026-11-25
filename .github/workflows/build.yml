@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# нов push в същия клон спира предишния билд
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      # NativeScript CLI проверява и emulator (`emulator -help`) и adb (platform-tools).
+      # Системен образ не е нужен – билдът не пуска емулатор.
+      - name: Android SDK 36 + emulator
+        run: sdkmanager --install "platform-tools" "emulator" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Зависимости
+        run: npm ci
+
+      - name: Проверка на типовете
+        run: npx tsc --noEmit -p .
+
+      - name: Проверка на средата (ns doctor)
+        run: |
+          npm install -g nativescript@9
+          ns usage-reporting disable
+          ns error-reporting disable
+          ns doctor android
+
+      - name: Билд
+        run: ns build android
+
+      - name: Качване на APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-car-debug-apk
+          path: platforms/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
