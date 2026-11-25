@@ -1,0 +1,66 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo">
+  <ActionBar title="{{ title }}">
+    <NavigationButton text="Отказ" android.systemIcon="ic_menu_back" tap="goBack" />
+    <ActionItem ios.position="right" android.position="actionBar">
+      <ActionItem.actionView>
+        <Label text="Запази" tap="save" class="bar-btn" />
+      </ActionItem.actionView>
+    </ActionItem>
+  </ActionBar>
+
+  <ScrollView>
+    <StackLayout class="form">
+      <Label text="Категория" class="field-label" />
+      <ListPicker items="{{ categories }}" selectedIndex="{{ categoryIndex }}" height="120" />
+
+      <Label text="Сума (€) *" class="field-label" />
+      <TextField text="{{ amount }}" hint="0.00" keyboardType="number" class="input" />
+
+      <Label text="{{ isDocument ? 'Дата на плащане / начало' : 'Дата' }}" class="field-label" />
+      <android>
+        <Label text="{{ dateText }}" tap="pickDate" class="input date-field" />
+      </android>
+      <ios>
+        <DatePicker date="{{ date }}" height="120" />
+      </ios>
+
+      <StackLayout visibility="{{ isDocument ? 'visible' : 'collapsed' }}">
+        <Label text="Срок" class="field-label" />
+        <ListPicker items="{{ periods }}" selectedIndex="{{ periodIndex }}" height="100" />
+
+        <Label text="Валидна до (включително)" class="field-label" />
+        <android>
+          <Label text="{{ validUntilText }}" tap="pickValidUntil" class="input date-field valid-until" />
+        </android>
+        <ios>
+          <DatePicker date="{{ validUntil }}" height="120" />
+        </ios>
+      </StackLayout>
+
+      <Label text="Километраж (км)" class="field-label" />
+      <TextField text="{{ odometer }}" hint="по желание" keyboardType="number" class="input" />
+
+      <StackLayout visibility="{{ isService ? 'visible' : 'collapsed' }}">
+        <Label text="Какво е сменено" class="field-label" />
+        <Repeater items="{{ parts }}">
+          <Repeater.itemTemplate>
+            <GridLayout columns="auto, *" class="{{ checked ? 'part-row part-on' : 'part-row' }}" tap="{{ toggle }}">
+              <Label col="0" text="{{ checked ? '☑' : '☐' }}" class="part-box" />
+              <Label col="1" text="{{ name }}" class="part-name" />
+            </GridLayout>
+          </Repeater.itemTemplate>
+        </Repeater>
+      </StackLayout>
+
+      <StackLayout visibility="{{ isFuel ? 'visible' : 'collapsed' }}">
+        <Label text="Заредени литри" class="field-label" />
+        <TextField text="{{ liters }}" hint="за изчисляване на разхода л/100 км" keyboardType="number" class="input" />
+      </StackLayout>
+
+      <Label text="Бележка" class="field-label" />
+      <TextView text="{{ note }}" hint="напр. смяна на масло и филтри" class="input" />
+
+      <Button text="Запази" tap="save" class="-primary" />
+    </StackLayout>
+  </ScrollView>
+</Page>

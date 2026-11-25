@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Икона: кола + монета € (разходи за автомобила) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+  <group android:scaleX="0.86" android:scaleY="0.86" android:translateX="7.56" android:translateY="11.86">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M33,53 L40.5,40 Q42.5,36.5 46.5,36.5 L62,36.5 Q66,36.5 68.5,40 L77,53 Z"/>
+    <path android:fillColor="#FF1F6FEB" android:pathData="M42,51 L46.5,42.5 Q47.3,41 49,41 L53,41 L53,51 Z"/>
+    <path android:fillColor="#FF1F6FEB" android:pathData="M56.5,51 L56.5,41 L61.5,41 Q63.3,41 64.3,42.5 L69.5,51 Z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M28,51 H80 A6,6 0 0,1 86,57 V62 A6,6 0 0,1 80,68 H28 A6,6 0 0,1 22,62 V57 A6,6 0 0,1 28,51 Z"/>
+    <path android:fillColor="#FFFFC83D" android:pathData="M81,55 H84 A2,2 0 0,1 86,57 V57 A2,2 0 0,1 84,59 H81 A2,2 0 0,1 79,57 V57 A2,2 0 0,1 81,55 Z"/>
+    <path android:fillColor="#FFFF6B6B" android:pathData="M24,55 H25 A2,2 0 0,1 27,57 V57 A2,2 0 0,1 25,59 H24 A2,2 0 0,1 22,57 V57 A2,2 0 0,1 24,55 Z"/>
+    <path android:fillColor="#FF1F6FEB" android:pathData="M28,68 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 Z"/>
+    <path android:fillColor="#FF1F6FEB" android:pathData="M62,68 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 Z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M30.5,68 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0 Z"/>
+    <path android:fillColor="#FFFFFFFF" android:pathData="M64.5,68 a6.5,6.5 0 1,0 13.0,0 a6.5,6.5 0 1,0 -13.0,0 Z"/>
+    <path android:fillColor="#FF1F6FEB" android:pathData="M34.5,68 a2.5,2.5 0 1,0 5.0,0 a2.5,2.5 0 1,0 -5.0,0 Z"/>
+    <path android:fillColor="#FF1F6FEB" android:pathData="M68.5,68 a2.5,2.5 0 1,0 5.0,0 a2.5,2.5 0 1,0 -5.0,0 Z"/>
+    <path android:fillColor="#FF1F6FEB" android:pathData="M63,31 a11,11 0 1,0 22,0 a11,11 0 1,0 -22,0 Z"/>
+    <path android:fillColor="#FFFFC83D" android:pathData="M65,31 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 Z"/>
+    <path android:strokeColor="#FF7A4E00" android:strokeWidth="2" android:strokeLineCap="round" android:pathData="M78,26.8 A5.2,5.2 0 1,0 78,35.2"/>
+    <path android:strokeColor="#FF7A4E00" android:strokeWidth="1.6" android:strokeLineCap="round" android:pathData="M68.5,29.6 L75,29.6 M68.5,32.4 L75,32.4"/>
+  </group>
+</vector>

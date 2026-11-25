@@ -1,0 +1,38 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo">
+  <ActionBar title="Моите автомобили">
+    <ActionItem ios.position="right" android.position="actionBar">
+      <ActionItem.actionView>
+        <Label text="+ Кола" tap="addCar" class="bar-btn" />
+      </ActionItem.actionView>
+    </ActionItem>
+    <ActionItem ios.position="right" android.position="actionBar">
+      <ActionItem.actionView>
+        <Label text="⋮" tap="moreMenu" class="bar-btn bar-more" />
+      </ActionItem.actionView>
+    </ActionItem>
+  </ActionBar>
+
+  <GridLayout rows="*">
+    <ListView items="{{ cars }}" itemTap="openCar" separatorColor="#ddd" visibility="{{ cars.length ? 'visible' : 'collapsed' }}">
+      <ListView.itemTemplate>
+        <GridLayout columns="*, auto" class="car-row">
+          <StackLayout col="0">
+            <Label text="{{ name }}" class="car-name" />
+            <Label text="{{ plate }}" class="muted" visibility="{{ plate ? 'visible' : 'collapsed' }}" />
+            <Label text="{{ expiredText }}" class="car-alert car-alert-expired" textWrap="true" visibility="{{ expiredText ? 'visible' : 'collapsed' }}" />
+            <Label text="{{ soonText }}" class="car-alert" textWrap="true" visibility="{{ soonText ? 'visible' : 'collapsed' }}" />
+          </StackLayout>
+          <StackLayout col="1" verticalAlignment="center">
+            <Label text="{{ totalText }}" class="amount" horizontalAlignment="right" />
+            <Label text="{{ countText }}" class="muted" horizontalAlignment="right" />
+          </StackLayout>
+        </GridLayout>
+      </ListView.itemTemplate>
+    </ListView>
+
+    <StackLayout class="empty" verticalAlignment="center" visibility="{{ cars.length ? 'collapsed' : 'visible' }}">
+      <Label text="Все още нямате добавени автомобили." textWrap="true" class="text-center" />
+      <Button text="Добави автомобил" tap="addCar" class="-primary" />
+    </StackLayout>
+  </GridLayout>
+</Page>

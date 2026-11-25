@@ -1,0 +1,25 @@
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo">
+  <ActionBar title="{{ title }}">
+    <NavigationButton text="Назад" android.systemIcon="ic_menu_back" tap="goBack" />
+  </ActionBar>
+
+  <GridLayout rows="auto, *">
+    <StackLayout row="0" class="summary">
+      <Label text="{{ odometerText }}" class="big" />
+      <Label text="Натиснете част, за да отбележите смяна или да промените интервала." class="muted" textWrap="true" />
+    </StackLayout>
+
+    <ListView row="1" items="{{ items }}" itemTap="itemTap" separatorColor="#444">
+      <ListView.itemTemplate>
+        <GridLayout columns="auto, *" class="svc-row">
+          <Label col="0" class="{{ 'svc-dot svc-' + state }}" text="●" verticalAlignment="top" />
+          <StackLayout col="1">
+            <Label text="{{ name }}" class="exp-cat" />
+            <Label text="{{ lastText }}" class="muted" textWrap="true" />
+            <Label text="{{ nextText }}" class="{{ 'svc-next svc-' + state }}" textWrap="true" visibility="{{ nextText ? 'visible' : 'collapsed' }}" />
+          </StackLayout>
+        </GridLayout>
+      </ListView.itemTemplate>
+    </ListView>
+  </GridLayout>
+</Page>
