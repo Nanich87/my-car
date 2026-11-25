@@ -28,6 +28,7 @@ export function transaction<T>(fn: () => T): T {
   try {
     const res = fn()
     exec('COMMIT')
+
     return res
   } catch (e) {
     exec('ROLLBACK')
@@ -94,6 +95,7 @@ const MIGRATIONS: (() => void)[] = [
     for (const [label, key] of Object.entries(LEGACY_CATEGORY_KEYS)) {
       exec('UPDATE expenses SET category = ? WHERE category = ?', [key, label])
     }
+
     exec('ALTER TABLE expenses ADD COLUMN amount_cents INTEGER NOT NULL DEFAULT 0')
     exec('UPDATE expenses SET amount_cents = CAST(ROUND(amount * 100) AS INTEGER)')
     exec('ALTER TABLE expenses DROP COLUMN amount')
@@ -160,6 +162,7 @@ function importFromSettings() {
   } catch (e) {
     // старите данни остават непокътнати – може да се опита отново при следващо стартиране
     console.error('SQLite: старите данни не могат да бъдат прочетени', e)
+
     return
   }
 
@@ -177,6 +180,7 @@ function importFromSettings() {
         ])
       }
     }
+
     for (const e of expenses) {
       if (!carIds.has(e.carId) || !e.date || !e.category) {
         continue
@@ -200,6 +204,7 @@ function importFromSettings() {
       for (const p of e.parts ?? []) {
         exec('INSERT OR IGNORE INTO expense_parts (expense_id, part) VALUES (?, ?)', [e.id, p])
       }
+
       imported++
     }
   })
@@ -210,6 +215,7 @@ function importFromSettings() {
   for (const c of cars) {
     ApplicationSettings.remove(OLD_INTERVALS_KEY + c.id)
   }
+
   console.log(`SQLite: прехвърлени ${cars.length} коли и ${imported} разхода`)
 }
 

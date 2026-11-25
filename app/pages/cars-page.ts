@@ -29,6 +29,7 @@ class CarsViewModel extends Observable {
           .filter((d) => d.state === state && d.daysLeft != null)
           .map((d) => L.cars.alert(categoryLabel(d.category), daysText(d.daysLeft as number)))
           .join('\n')
+
       return {
         ...car,
         totalText: formatMoney(sumCents(exps)),

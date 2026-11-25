@@ -22,13 +22,14 @@ import {
 // ---------- Дати ----------
 
 export function toIsoDate(d: Date): string {
-  const p = (n: number) => (n < 10 ? '0' + n : '' + n)
+  const p = (n: number) => (n < 10 ? `0${n}` : `${n}`)
+
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 }
 
 /** ISO дата → Date по обяд (така смяната на лятно/зимно време не мести деня). */
 export function isoToDate(iso: string): Date {
-  return new Date(iso + 'T12:00:00')
+  return new Date(`${iso}T12:00:00`)
 }
 
 /** Добавя месеци, без да „прелива“ в следващия месец: 31.01 + 1 месец = 28/29.02. */
@@ -39,12 +40,14 @@ export function addMonths(iso: string, months: number): string {
   d.setMonth(d.getMonth() + months)
   const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
   d.setDate(Math.min(day, lastDay))
+
   return toIsoDate(d)
 }
 
 export function addDays(iso: string, days: number): string {
   const d = isoToDate(iso)
   d.setDate(d.getDate() + days)
+
   return toIsoDate(d)
 }
 
@@ -101,6 +104,7 @@ export function byCategory(expenses: readonly Expense[]): { category: string; to
   for (const e of expenses) {
     map.set(e.category, (map.get(e.category) ?? 0) + e.amountCents)
   }
+
   return [...map]
     .map(([category, totalCents]) => ({ category, totalCents }))
     .sort((a, b) => b.totalCents - a.totalCents)
@@ -127,12 +131,14 @@ export function fuelConsumption(expenses: readonly Expense[]): number | null {
 
   // литрите от първото зареждане не се броят – те са изминати преди периода
   const liters = fills.slice(1).reduce((s, e) => s + e.liters, 0)
+
   return (liters / distance) * 100
 }
 
 /** Последният известен километраж на колата. */
 export function currentOdometer(expenses: readonly Expense[]): number | null {
   const kms = expenses.map((e) => e.odometer ?? 0).filter((k) => k > 0)
+
   return kms.length ? Math.max(...kms) : null
 }
 
@@ -142,6 +148,7 @@ export function currentOdometer(expenses: readonly Expense[]): number | null {
 export function documentStatus(expenses: readonly Expense[], todayIso: string): DocumentStatus[] {
   const docs = expenses.filter((e): e is Expense & { validUntil: string } => !!e.validUntil)
   const categories = [...TRACKED_DOCUMENTS, ...OPTIONAL_DOCUMENTS.filter((c) => docs.some((e) => e.category === c))]
+
   return categories.map((category) => {
     const last = docs.filter((e) => e.category === category).sort((a, b) => (a.validUntil < b.validUntil ? 1 : -1))[0]
     if (!last) {
@@ -149,9 +156,31 @@ export function documentStatus(expenses: readonly Expense[], todayIso: string): 
     }
 
     const daysLeft = daysBetween(todayIso, last.validUntil)
-    const state: DocState = daysLeft < 0 ? 'expired' : daysLeft <= DOC_SOON_DAYS ? 'soon' : 'ok'
+    const state = docState(daysLeft)
+
     return { category, last, validUntil: last.validUntil, daysLeft, state }
   })
+}
+
+function docState(daysLeft: number): DocState {
+  if (daysLeft < 0) {
+    return 'expired'
+  }
+
+  if (daysLeft <= DOC_SOON_DAYS) {
+    return 'soon'
+  }
+
+  return 'ok'
+}
+
+/** Най-новото първо; при равни дати – по-високият километраж. */
+function newestFirst(a: Expense, b: Expense): number {
+  if (a.date === b.date) {
+    return (b.odometer ?? 0) - (a.odometer ?? 0)
+  }
+
+  return a.date < b.date ? 1 : -1
 }
 
 export function isDocumentCategory(category: string): boolean {
@@ -166,6 +195,7 @@ export function withDefaultIntervals(custom: Readonly<Record<string, Interval>>)
   for (const i of SERVICE_ITEMS) {
     res[i.key] = custom[i.key] ?? { km: i.km, months: i.months }
   }
+
   return res
 }
 
@@ -180,10 +210,7 @@ export function serviceStatus(
 
   return SERVICE_ITEMS.map((item) => {
     const interval = intervals[item.key] ?? { km: item.km, months: item.months }
-    // най-новата смяна; при равни дати – по-високият километраж
-    const last = expenses
-      .filter((e) => e.parts?.includes(item.key))
-      .sort((a, b) => (a.date === b.date ? (b.odometer ?? 0) - (a.odometer ?? 0) : a.date < b.date ? 1 : -1))[0]
+    const last = expenses.filter((e) => e.parts?.includes(item.key)).sort(newestFirst)[0]
     if (!last) {
       return { item, interval, state: 'never' }
     }

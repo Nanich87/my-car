@@ -111,7 +111,7 @@ export const L = {
     addFirst: 'Добави автомобил',
     expenseCount: (n: number) => `${n} ${plural(n, 'разход', 'разхода')}`,
     alert: (category: string, text: string) => `${category}: ${text}`,
-    dbError: (e: unknown) => 'Базата данни не може да бъде отворена: ' + e,
+    dbError: (e: unknown) => `Базата данни не може да бъде отворена: ${e}`,
     scheduledNotifications: (n: number) => `Планирани известия: ${n}`,
     testNotification: 'Тестово известие (след 5 сек.)',
     notificationsOffTitle: 'Известията са изключени',
@@ -181,7 +181,7 @@ export const L = {
     noInterval: 'без интервал',
     never: (interval: string) => `Няма записана смяна · ${interval}`,
     changed: (date: string, km: string | null, interval: string) =>
-      `Сменено: ${date}${km ? ' при ' + km : ''} · ${interval}`,
+      `Сменено: ${date}${km ? ` при ${km}` : ''} · ${interval}`,
     atKm: (km: string) => `при ${km}`,
     kmLeft: (km: string) => ` (остават ${km})`,
     kmOverdue: (km: string) => ` (просрочено с ${km})`,
@@ -199,7 +199,17 @@ export const L = {
 
   notify: {
     channel: 'Изтичащи документи',
-    expires: (days: number) => (days === 0 ? 'изтича днес' : days === 1 ? 'изтича утре' : `изтича след ${days} дни`),
+    expires: (days: number) => {
+      if (days === 0) {
+        return 'изтича днес'
+      }
+
+      if (days === 1) {
+        return 'изтича утре'
+      }
+
+      return `изтича след ${days} дни`
+    },
     title: (category: string, when: string) => `${category} ${when}`,
     body: (car: string, date: string) => `${car} – валидна до ${date}`,
     testTitle: 'Винетка изтича след 7 дни',
@@ -212,5 +222,6 @@ export function t(path: string): string {
   const v = path
     .split('.')
     .reduce<unknown>((o, k) => (o != null && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), L)
+
   return typeof v === 'string' ? v : path
 }

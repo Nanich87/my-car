@@ -8,12 +8,14 @@ import { L } from '../strings'
 export function formatNumber(n: number, digits = 0): string {
   const [int, frac] = Math.abs(n).toFixed(digits).split('.')
   const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, L.units.thousandsSeparator)
+
   return (n < 0 ? '−' : '') + grouped + (frac ? L.units.decimalSeparator + frac : '')
 }
 
 /** Число без излишни нули: 41,9 / 42 (за литри и др.). */
 export function formatDecimal(n: number, maxDigits = 2): string {
   const s = formatNumber(n, maxDigits)
+
   return s.includes(L.units.decimalSeparator) ? s.replace(/0+$/, '').replace(/[,.]$/, '') : s
 }
 
@@ -37,6 +39,7 @@ export function formatLiters(l: number): string {
 /** ISO (YYYY-MM-DD) → ДД.ММ.ГГГГ */
 export function formatDate(iso: string): string {
   const [y, m, d] = iso.split('-')
+
   return `${d}.${m}.${y}`
 }
 

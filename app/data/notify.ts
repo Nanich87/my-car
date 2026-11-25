@@ -40,7 +40,7 @@ export function buildReminders(now = new Date()): ScheduleOptions[] {
       }
 
       for (const days of REMIND_DAYS_BEFORE) {
-        const at = new Date(doc.validUntil + 'T00:00:00')
+        const at = new Date(`${doc.validUntil}T00:00:00`)
         at.setDate(at.getDate() - days)
         at.setHours(REMIND_HOUR, 0, 0, 0)
         if (at.getTime() <= now.getTime()) {
@@ -58,6 +58,7 @@ export function buildReminders(now = new Date()): ScheduleOptions[] {
       }
     }
   }
+
   return res
 }
 
@@ -74,7 +75,7 @@ function cancelAndroidAlarm(id: number) {
   const context = Utils.android.getApplicationContext()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- класът на плъгина няма типове
   const receiver = (com as any).telerik.localnotifications.NotificationAlarmReceiver.class
-  const intent = new android.content.Intent(context, receiver).setAction('' + id)
+  const intent = new android.content.Intent(context, receiver).setAction(`${id}`)
   const flags = android.app.PendingIntent.FLAG_NO_CREATE | android.app.PendingIntent.FLAG_IMMUTABLE
   const pi = android.app.PendingIntent.getBroadcast(context, 0, intent, flags)
   if (pi) {
@@ -102,6 +103,7 @@ export function rescheduleNotifications(): Promise<void> {
           await LocalNotifications.cancel(id)
         }
       }
+
       const reminders = buildReminders()
       ApplicationSettings.setNumber(LAST_ID_KEY, FIRST_ID + Math.max(0, reminders.length - 1))
       // schedule() сам пита за разрешение (Android 13+) при първото извикване
@@ -112,6 +114,7 @@ export function rescheduleNotifications(): Promise<void> {
       console.error('rescheduleNotifications', e)
     }
   })
+
   return running
 }
 
@@ -146,6 +149,7 @@ export async function testNotification(): Promise<boolean> {
       forceShowWhenInForeground: true,
     },
   ])
+
   return true
 }
 

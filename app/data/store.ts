@@ -116,6 +116,7 @@ export function getCars(): Car[] {
 
 export function getCar(id: string): Car | undefined {
   const r = queryOne<CarRow>('SELECT * FROM cars WHERE id = ?', [id])
+
   return r ? rowToCar(r) : undefined
 }
 
@@ -131,6 +132,7 @@ export function saveCar(car: { id?: string; name: string; plate?: string }): Car
   }
 
   changed()
+
   return res
 }
 
@@ -157,11 +159,13 @@ export function getExpensesByCar(): Map<string, Expense[]> {
       res.set(e.carId, [e])
     }
   }
+
   return res
 }
 
 export function getExpense(id: string): Expense | undefined {
   const r = queryOne<ExpenseRow>(`${EXPENSE_SELECT} WHERE e.id = ?`, [id])
+
   return r ? rowToExpense(r) : undefined
 }
 
@@ -169,6 +173,7 @@ export function saveExpense(exp: Omit<Expense, 'id'> & { id?: string }): Expense
   const res: Expense = { ...exp, id: exp.id ?? newId() }
   transaction(() => writeExpense(res))
   changed()
+
   return res
 }
 
@@ -189,6 +194,7 @@ export function getIntervals(carId: string): Record<string, Interval> {
   for (const r of rows) {
     custom[r.item_key] = { km: r.km, months: r.months }
   }
+
   return withDefaultIntervals(custom)
 }
 

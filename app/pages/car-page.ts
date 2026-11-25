@@ -18,6 +18,18 @@ function shortDays(n: number): string {
   return L.units.days(n)
 }
 
+function serviceButtonText(overdue: number, soon: number): string {
+  if (overdue) {
+    return L.car.serviceOverdue(overdue)
+  }
+
+  if (soon) {
+    return L.car.serviceSoon(soon)
+  }
+
+  return L.car.service
+}
+
 class CarViewModel extends Observable {
   car?: Car
 
@@ -40,17 +52,14 @@ class CarViewModel extends Observable {
     const soon = services.filter((x) => x.state === 'soon').length
 
     this.set('car', car)
-    this.set(
-      'serviceButtonText',
-      overdue ? L.car.serviceOverdue(overdue) : soon ? L.car.serviceSoon(soon) : L.car.service,
-    )
+    this.set('serviceButtonText', serviceButtonText(overdue, soon))
     this.set(
       'docs',
       documentStatus(exps, today).map((d) => this.docRow(d)),
     )
     this.set('totalText', formatMoney(sumCents(exps)))
     this.set('yearLabel', L.car.inYear(Number(year)))
-    this.set('yearText', formatMoney(sumCents(exps.filter((e) => e.date.startsWith(year + '-')))))
+    this.set('yearText', formatMoney(sumCents(exps.filter((e) => e.date.startsWith(`${year}-`)))))
     this.set('consumptionText', cons == null ? L.common.dash : L.car.fuelValue(formatDecimal(cons, 1)))
     this.set(
       'categories',
@@ -103,6 +112,7 @@ class CarViewModel extends Observable {
 
     const amountText = formatMoney(e.amountCents)
     const categoryText = categoryLabel(e.category)
+
     return {
       categoryText,
       amountText,

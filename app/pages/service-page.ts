@@ -21,13 +21,24 @@ function intervalText(s: ServiceStatus): string {
   return p.length ? L.service.every(p.join(' / ')) : L.service.noInterval
 }
 
+/** „ (остават 2 300 км)“ / „ (просрочено с 1 565 км)“ / „“ без километраж. */
+function kmLeftText(left: number | null): string {
+  if (left == null) {
+    return ''
+  }
+
+  if (left >= 0) {
+    return L.service.kmLeft(formatKm(left))
+  }
+
+  return L.service.kmOverdue(formatKm(-left))
+}
+
 function nextText(s: ServiceStatus, odo: number | null): string {
   const p: string[] = []
   if (s.dueKm) {
     const left = odo ? s.dueKm - odo : null
-    const leftText =
-      left == null ? '' : left >= 0 ? L.service.kmLeft(formatKm(left)) : L.service.kmOverdue(formatKm(-left))
-    p.push(L.service.atKm(formatKm(s.dueKm)) + leftText)
+    p.push(L.service.atKm(formatKm(s.dueKm)) + kmLeftText(left))
   }
 
   if (s.dueDate) {
@@ -39,6 +50,7 @@ function nextText(s: ServiceStatus, odo: number | null): string {
   }
 
   const when = p.join(L.service.or)
+
   return s.state === 'overdue' ? L.service.nextOverdue(when) : L.service.next(when)
 }
 
@@ -46,6 +58,7 @@ function describe(s: ServiceStatus, odo: number | null) {
   const lastText = s.last
     ? L.service.changed(formatDate(s.last.date), s.last.odometer ? formatKm(s.last.odometer) : null, intervalText(s))
     : L.service.never(intervalText(s))
+
   return { name: s.item.name, state: s.state, lastText, nextText: s.last ? nextText(s, odo) : '', status: s }
 }
 
@@ -113,6 +126,7 @@ class ServiceViewModel extends Observable {
     const months = parseIntOrZero(mRes.text)
     if (km == null || months == null) {
       await Dialogs.alert({ title: L.common.error, message: L.service.invalidNumber, okButtonText: L.common.ok })
+
       return
     }
 
