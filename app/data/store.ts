@@ -55,11 +55,26 @@ function rowToCar(r: CarRow): Car {
 
 function rowToExpense(r: ExpenseRow): Expense {
   const e: Expense = { id: r.id, carId: r.car_id, date: r.date, category: r.category, amountCents: r.amount_cents }
-  if (r.odometer != null) e.odometer = r.odometer
-  if (r.liters != null) e.liters = r.liters
-  if (r.note != null) e.note = r.note
-  if (r.valid_until != null) e.validUntil = r.valid_until
-  if (r.parts) e.parts = r.parts.split(',')
+  if (r.odometer != null) {
+    e.odometer = r.odometer
+  }
+
+  if (r.liters != null) {
+    e.liters = r.liters
+  }
+
+  if (r.note != null) {
+    e.note = r.note
+  }
+
+  if (r.valid_until != null) {
+    e.validUntil = r.valid_until
+  }
+
+  if (r.parts) {
+    e.parts = r.parts.split(',')
+  }
+
   return e
 }
 
@@ -88,7 +103,9 @@ function writeExpense(e: Expense) {
     ],
   )
   exec('DELETE FROM expense_parts WHERE expense_id = ?', [e.id])
-  for (const p of e.parts ?? []) exec('INSERT OR IGNORE INTO expense_parts (expense_id, part) VALUES (?, ?)', [e.id, p])
+  for (const p of e.parts ?? []) {
+    exec('INSERT OR IGNORE INTO expense_parts (expense_id, part) VALUES (?, ?)', [e.id, p])
+  }
 }
 
 // ---------- Автомобили ----------
@@ -107,8 +124,12 @@ export function saveCar(car: { id?: string; name: string; plate?: string }): Car
   const res: Car = existing
     ? { id: existing.id, name: car.name, plate: car.plate ?? existing.plate }
     : { id: newId(), name: car.name, plate: car.plate ?? '' }
-  if (existing) exec('UPDATE cars SET name = ?, plate = ? WHERE id = ?', [res.name, res.plate, res.id])
-  else exec('INSERT INTO cars (id, name, plate) VALUES (?, ?, ?)', [res.id, res.name, res.plate])
+  if (existing) {
+    exec('UPDATE cars SET name = ?, plate = ? WHERE id = ?', [res.name, res.plate, res.id])
+  } else {
+    exec('INSERT INTO cars (id, name, plate) VALUES (?, ?, ?)', [res.id, res.name, res.plate])
+  }
+
   changed()
   return res
 }
@@ -130,8 +151,11 @@ export function getExpensesByCar(): Map<string, Expense[]> {
   const res = new Map<string, Expense[]>()
   for (const e of query<ExpenseRow>(`${EXPENSE_SELECT} ${EXPENSE_ORDER}`).map(rowToExpense)) {
     const list = res.get(e.carId)
-    if (list) list.push(e)
-    else res.set(e.carId, [e])
+    if (list) {
+      list.push(e)
+    } else {
+      res.set(e.carId, [e])
+    }
   }
   return res
 }
@@ -162,7 +186,9 @@ export function getIntervals(carId: string): Record<string, Interval> {
     'SELECT item_key, km, months FROM service_intervals WHERE car_id = ?',
     [carId],
   )
-  for (const r of rows) custom[r.item_key] = { km: r.km, months: r.months }
+  for (const r of rows) {
+    custom[r.item_key] = { km: r.km, months: r.months }
+  }
   return withDefaultIntervals(custom)
 }
 

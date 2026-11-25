@@ -10,8 +10,14 @@ const ORDER: Record<ServiceState, number> = { overdue: 0, soon: 1, ok: 2, none: 
 
 function intervalText(s: ServiceStatus): string {
   const p: string[] = []
-  if (s.interval.km) p.push(formatKm(s.interval.km))
-  if (s.interval.months) p.push(L.units.months(s.interval.months))
+  if (s.interval.km) {
+    p.push(formatKm(s.interval.km))
+  }
+
+  if (s.interval.months) {
+    p.push(L.units.months(s.interval.months))
+  }
+
   return p.length ? L.service.every(p.join(' / ')) : L.service.noInterval
 }
 
@@ -23,8 +29,15 @@ function nextText(s: ServiceStatus, odo: number | null): string {
       left == null ? '' : left >= 0 ? L.service.kmLeft(formatKm(left)) : L.service.kmOverdue(formatKm(-left))
     p.push(L.service.atKm(formatKm(s.dueKm)) + leftText)
   }
-  if (s.dueDate) p.push(L.service.byDate(formatDate(s.dueDate)))
-  if (!p.length) return ''
+
+  if (s.dueDate) {
+    p.push(L.service.byDate(formatDate(s.dueDate)))
+  }
+
+  if (!p.length) {
+    return ''
+  }
+
   const when = p.join(L.service.or)
   return s.state === 'overdue' ? L.service.nextOverdue(when) : L.service.next(when)
 }
@@ -39,7 +52,10 @@ function describe(s: ServiceStatus, odo: number | null) {
 /** Цяло число ≥ 0 от текст; празно = 0; невалидно = null. */
 function parseIntOrZero(v: string | undefined): number | null {
   const s = (v ?? '').trim().replace(/\s/g, '')
-  if (s === '') return 0
+  if (s === '') {
+    return 0
+  }
+
   return /^\d+$/.test(s) ? Number(s) : null
 }
 
@@ -52,7 +68,10 @@ class ServiceViewModel extends Observable {
 
   refresh(): void {
     const car = getCar(this.carId)
-    if (!car) return
+    if (!car) {
+      return
+    }
+
     const exps = getExpenses(this.carId)
     const odo = currentOdometer(exps)
     this.set('title', L.service.title(car.name))
@@ -74,7 +93,10 @@ class ServiceViewModel extends Observable {
       cancelButtonText: L.common.cancel,
       inputType: 'number',
     })
-    if (!kmRes.result) return
+    if (!kmRes.result) {
+      return
+    }
+
     const mRes = await Dialogs.prompt({
       title: s.item.name,
       message: L.service.intervalMonths,
@@ -83,22 +105,32 @@ class ServiceViewModel extends Observable {
       cancelButtonText: L.common.cancel,
       inputType: 'number',
     })
-    if (!mRes.result) return
+    if (!mRes.result) {
+      return
+    }
+
     const km = parseIntOrZero(kmRes.text)
     const months = parseIntOrZero(mRes.text)
     if (km == null || months == null) {
       await Dialogs.alert({ title: L.common.error, message: L.service.invalidNumber, okButtonText: L.common.ok })
       return
     }
+
     saveInterval(this.carId, s.item.key, { km, months })
     this.refresh()
   }
 
   itemTap = async (args: ItemEventData): Promise<void> => {
     const s = this.items[args.index]?.status
-    if (!s) return
+    if (!s) {
+      return
+    }
+
     const actions = [L.service.markChanged, L.service.editInterval]
-    if (s.last) actions.push(L.service.viewLast)
+    if (s.last) {
+      actions.push(L.service.viewLast)
+    }
+
     const choice = await Dialogs.action({ title: s.item.name, cancelButtonText: L.common.cancel, actions })
     if (choice === L.service.markChanged) {
       Frame.topmost().navigate({
@@ -123,6 +155,7 @@ export function navigatingTo(args: NavigatedData): void {
     vm = new ServiceViewModel(page.navigationContext.carId)
     page.bindingContext = vm
   }
+
   vm.refresh()
 }
 

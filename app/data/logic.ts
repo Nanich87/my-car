@@ -56,8 +56,14 @@ export function daysBetween(fromIso: string, toIso: string): number {
 /** Последен ден на валидност: начална дата + период − 1 ден. */
 export function computeExpiry(startIso: string, period: Period): string {
   let end = startIso
-  if (period.months) end = addMonths(end, period.months)
-  if (period.days) end = addDays(end, period.days)
+  if (period.months) {
+    end = addMonths(end, period.months)
+  }
+
+  if (period.days) {
+    end = addDays(end, period.days)
+  }
+
   return addDays(end, -1)
 }
 
@@ -72,7 +78,10 @@ export function parseDecimal(value: unknown): number | null {
     .trim()
     .replace(/\s/g, '')
     .replace(',', '.')
-  if (s === '') return null
+  if (s === '') {
+    return null
+  }
+
   return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : NaN
 }
 
@@ -89,7 +98,9 @@ export function sumCents(expenses: readonly Expense[]): number {
 /** Обобщение по категории, сортирано по сума (низходящо). */
 export function byCategory(expenses: readonly Expense[]): { category: string; totalCents: number }[] {
   const map = new Map<string, number>()
-  for (const e of expenses) map.set(e.category, (map.get(e.category) ?? 0) + e.amountCents)
+  for (const e of expenses) {
+    map.set(e.category, (map.get(e.category) ?? 0) + e.amountCents)
+  }
   return [...map]
     .map(([category, totalCents]) => ({ category, totalCents }))
     .sort((a, b) => b.totalCents - a.totalCents)
@@ -105,9 +116,15 @@ export function fuelConsumption(expenses: readonly Expense[]): number | null {
       (e): e is Expense & { odometer: number; liters: number } => e.category === 'fuel' && !!e.odometer && !!e.liters,
     )
     .sort((a, b) => a.odometer - b.odometer)
-  if (fills.length < 2) return null
+  if (fills.length < 2) {
+    return null
+  }
+
   const distance = fills[fills.length - 1].odometer - fills[0].odometer
-  if (distance <= 0) return null
+  if (distance <= 0) {
+    return null
+  }
+
   // литрите от първото зареждане не се броят – те са изминати преди периода
   const liters = fills.slice(1).reduce((s, e) => s + e.liters, 0)
   return (liters / distance) * 100
@@ -127,7 +144,10 @@ export function documentStatus(expenses: readonly Expense[], todayIso: string): 
   const categories = [...TRACKED_DOCUMENTS, ...OPTIONAL_DOCUMENTS.filter((c) => docs.some((e) => e.category === c))]
   return categories.map((category) => {
     const last = docs.filter((e) => e.category === category).sort((a, b) => (a.validUntil < b.validUntil ? 1 : -1))[0]
-    if (!last) return { category, state: 'none' }
+    if (!last) {
+      return { category, state: 'none' }
+    }
+
     const daysLeft = daysBetween(todayIso, last.validUntil)
     const state: DocState = daysLeft < 0 ? 'expired' : daysLeft <= DOC_SOON_DAYS ? 'soon' : 'ok'
     return { category, last, validUntil: last.validUntil, daysLeft, state }
@@ -143,7 +163,9 @@ export function isDocumentCategory(category: string): boolean {
 /** Собствените интервали на колата върху стойностите по подразбиране. */
 export function withDefaultIntervals(custom: Readonly<Record<string, Interval>>): Record<string, Interval> {
   const res: Record<string, Interval> = {}
-  for (const i of SERVICE_ITEMS) res[i.key] = custom[i.key] ?? { km: i.km, months: i.months }
+  for (const i of SERVICE_ITEMS) {
+    res[i.key] = custom[i.key] ?? { km: i.km, months: i.months }
+  }
   return res
 }
 
@@ -162,14 +184,19 @@ export function serviceStatus(
     const last = expenses
       .filter((e) => e.parts?.includes(item.key))
       .sort((a, b) => (a.date === b.date ? (b.odometer ?? 0) - (a.odometer ?? 0) : a.date < b.date ? 1 : -1))[0]
-    if (!last) return { item, interval, state: 'never' }
+    if (!last) {
+      return { item, interval, state: 'never' }
+    }
 
     const dueKm = interval.km && last.odometer ? last.odometer + interval.km : undefined
     const dueDate = interval.months ? addMonths(last.date, interval.months) : undefined
 
     let state: ServiceState = dueKm || dueDate ? 'ok' : 'none'
-    if ((dueKm && odo && odo >= dueKm) || (dueDate && todayIso >= dueDate)) state = 'overdue'
-    else if ((dueKm && odo && dueKm - odo <= SERVICE_SOON_KM) || (dueDate && soonDate >= dueDate)) state = 'soon'
+    if ((dueKm && odo && odo >= dueKm) || (dueDate && todayIso >= dueDate)) {
+      state = 'overdue'
+    } else if ((dueKm && odo && dueKm - odo <= SERVICE_SOON_KM) || (dueDate && soonDate >= dueDate)) {
+      state = 'soon'
+    }
 
     return { item, interval, last, dueKm, dueDate, state }
   })

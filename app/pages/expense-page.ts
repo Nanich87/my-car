@@ -93,7 +93,9 @@ class ExpenseViewModel extends Observable {
     const startCategory = existing?.category ?? ctx.category
 
     this.categoryKeys = [...CATEGORY_KEYS]
-    if (startCategory && !this.categoryKeys.includes(startCategory)) this.categoryKeys.push(startCategory)
+    if (startCategory && !this.categoryKeys.includes(startCategory)) {
+      this.categoryKeys.push(startCategory)
+    }
 
     this.set('title', existing ? L.expense.editTitle : L.expense.newTitle)
     this.set('categories', this.categoryKeys.map(categoryLabel))
@@ -133,6 +135,7 @@ class ExpenseViewModel extends Observable {
       this.autoExpiry = true
       this.recomputeExpiry()
     }
+
     this.set('validUntilText', this.validUntil ? formatDate(toIsoDate(this.validUntil)) : '')
   }
 
@@ -171,7 +174,10 @@ class ExpenseViewModel extends Observable {
   /** Преизчислява „Валидна до“ от датата и избрания период. */
   private recomputeExpiry() {
     const periods = DOCUMENT_PERIODS[this.category]
-    if (!periods || !this.autoExpiry) return
+    if (!periods || !this.autoExpiry) {
+      return
+    }
+
     const period = periods[this.periodIndex] ?? periods[0]
     this.set('validUntil', isoToDate(computeExpiry(toIsoDate(this.date), period)))
   }
@@ -181,7 +187,10 @@ class ExpenseViewModel extends Observable {
    * („96,5“ ставаше 965) – разрешаваме и двата десетични знака.
    */
   decimalField = (args: EventData): void => {
-    if (!isAndroid) return
+    if (!isAndroid) {
+      return
+    }
+
     const field = (args.object as TextField).android as android.widget.EditText
     field.setKeyListener(android.text.method.DigitsKeyListener.getInstance('0123456789.,'))
   }
@@ -208,17 +217,29 @@ class ExpenseViewModel extends Observable {
 
     // сума: задължителна; празна/0 се приема само при обслужване със сменени части (напр. сам)
     const amount = parseDecimal(this.amount)
-    if (Number.isNaN(amount) || (amount ?? 0) < 0) return this.error(L.expense.invalidAmount)
-    if (!amount && !parts.length) return this.error(L.expense.invalidAmount)
+    if (Number.isNaN(amount) || (amount ?? 0) < 0) {
+      return this.error(L.expense.invalidAmount)
+    }
+
+    if (!amount && !parts.length) {
+      return this.error(L.expense.invalidAmount)
+    }
 
     const odometer = parseDecimal(this.odometer)
-    if (Number.isNaN(odometer) || (odometer ?? 0) < 0) return this.error(L.expense.invalidNumber(L.expense.odometer))
+    if (Number.isNaN(odometer) || (odometer ?? 0) < 0) {
+      return this.error(L.expense.invalidNumber(L.expense.odometer))
+    }
+
     const liters = category === 'fuel' ? parseDecimal(this.liters) : null
-    if (Number.isNaN(liters) || (liters ?? 0) < 0) return this.error(L.expense.invalidNumber(L.expense.liters))
+    if (Number.isNaN(liters) || (liters ?? 0) < 0) {
+      return this.error(L.expense.invalidNumber(L.expense.liters))
+    }
 
     const date = toIsoDate(this.date)
     const validUntil = isDocumentCategory(category) && this.validUntil ? toIsoDate(this.validUntil) : undefined
-    if (validUntil && validUntil < date) return this.error(L.expense.validBeforeDate)
+    if (validUntil && validUntil < date) {
+      return this.error(L.expense.validBeforeDate)
+    }
 
     saveExpense({
       id: this.expenseId,
@@ -237,7 +258,10 @@ class ExpenseViewModel extends Observable {
 }
 
 export function navigatingTo(args: NavigatedData): void {
-  if (args.isBackNavigation) return
+  if (args.isBackNavigation) {
+    return
+  }
+
   const page = args.object as Page
   page.bindingContext = new ExpenseViewModel(page.navigationContext as NavContext)
 }

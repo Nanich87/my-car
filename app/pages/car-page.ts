@@ -7,8 +7,14 @@ import { L } from '../strings'
 import { editCarDialog } from './car-dialog'
 
 function shortDays(n: number): string {
-  if (n < 0) return L.car.docExpired
-  if (n === 0) return L.car.docToday
+  if (n < 0) {
+    return L.car.docExpired
+  }
+
+  if (n === 0) {
+    return L.car.docToday
+  }
+
   return L.units.days(n)
 }
 
@@ -21,7 +27,10 @@ class CarViewModel extends Observable {
 
   refresh(): void {
     const car = getCar(this.carId)
-    if (!car) return
+    if (!car) {
+      return
+    }
+
     const exps = getExpenses(this.carId) // една заявка – всичко останало се смята от нея
     const today = toIsoDate(new Date())
     const year = today.slice(0, 4)
@@ -72,11 +81,26 @@ class CarViewModel extends Observable {
 
   private expenseRow(e: Expense) {
     const details = [formatDate(e.date)]
-    if (e.odometer) details.push(formatKm(e.odometer))
-    if (e.liters) details.push(formatLiters(e.liters))
-    if (e.validUntil) details.push(L.car.validUntil(formatDate(e.validUntil)))
-    if (e.parts?.length) details.push(e.parts.map(serviceItemName).join(', '))
-    if (e.note) details.push(e.note)
+    if (e.odometer) {
+      details.push(formatKm(e.odometer))
+    }
+
+    if (e.liters) {
+      details.push(formatLiters(e.liters))
+    }
+
+    if (e.validUntil) {
+      details.push(L.car.validUntil(formatDate(e.validUntil)))
+    }
+
+    if (e.parts?.length) {
+      details.push(e.parts.map(serviceItemName).join(', '))
+    }
+
+    if (e.note) {
+      details.push(e.note)
+    }
+
     const amountText = formatMoney(e.amountCents)
     const categoryText = categoryLabel(e.category)
     return {
@@ -119,14 +143,19 @@ class CarViewModel extends Observable {
 
   carOptions = async (): Promise<void> => {
     const car = getCar(this.carId)
-    if (!car) return
+    if (!car) {
+      return
+    }
+
     const choice = await Dialogs.action({
       title: car.name,
       cancelButtonText: L.common.cancel,
       actions: [L.car.editCar, L.car.deleteCar],
     })
     if (choice === L.car.editCar) {
-      if (await editCarDialog(car)) this.refresh()
+      if (await editCarDialog(car)) {
+        this.refresh()
+      }
     } else if (choice === L.car.deleteCar) {
       const ok = await Dialogs.confirm({
         title: L.common.deleting,
@@ -150,6 +179,7 @@ export function navigatingTo(args: NavigatedData): void {
     vm = new CarViewModel(page.navigationContext.carId)
     page.bindingContext = vm
   }
+
   vm.refresh()
 }
 

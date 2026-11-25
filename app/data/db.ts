@@ -138,12 +138,17 @@ interface OldExpense {
 
 /** JSON от ApplicationSettings; хвърля грешка, ако е повреден (тогава нищо не се трие). */
 function readOld<T>(key: string, fallback: T): T {
-  if (!ApplicationSettings.hasKey(key)) return fallback
+  if (!ApplicationSettings.hasKey(key)) {
+    return fallback
+  }
+
   return JSON.parse(ApplicationSettings.getString(key)) as T
 }
 
 function importFromSettings() {
-  if (!ApplicationSettings.hasKey(OLD_CARS_KEY) && !ApplicationSettings.hasKey(OLD_EXPENSES_KEY)) return
+  if (!ApplicationSettings.hasKey(OLD_CARS_KEY) && !ApplicationSettings.hasKey(OLD_EXPENSES_KEY)) {
+    return
+  }
 
   let cars: OldCar[]
   let expenses: OldExpense[]
@@ -173,7 +178,10 @@ function importFromSettings() {
       }
     }
     for (const e of expenses) {
-      if (!carIds.has(e.carId) || !e.date || !e.category) continue
+      if (!carIds.has(e.carId) || !e.date || !e.category) {
+        continue
+      }
+
       exec(
         `INSERT OR IGNORE INTO expenses (id, car_id, date, category, amount_cents, odometer, liters, note, valid_until)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -199,7 +207,9 @@ function importFromSettings() {
   // старите ключове се махат само след успешно записване
   ApplicationSettings.remove(OLD_CARS_KEY)
   ApplicationSettings.remove(OLD_EXPENSES_KEY)
-  for (const c of cars) ApplicationSettings.remove(OLD_INTERVALS_KEY + c.id)
+  for (const c of cars) {
+    ApplicationSettings.remove(OLD_INTERVALS_KEY + c.id)
+  }
   console.log(`SQLite: прехвърлени ${cars.length} коли и ${imported} разхода`)
 }
 

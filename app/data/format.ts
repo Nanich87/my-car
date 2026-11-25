@@ -42,7 +42,13 @@ export function formatDate(iso: string): string {
 
 /** „остават 5 дни“ / „изтича днес“ / „изтече преди 3 дни“ */
 export function daysText(n: number): string {
-  if (n === 0) return L.docs.expiresToday
-  if (n < 0) return L.docs.expiredAgo(-n)
+  if (n === 0) {
+    return L.docs.expiresToday
+  }
+
+  if (n < 0) {
+    return L.docs.expiredAgo(-n)
+  }
+
   return L.docs.daysLeft(n)
 }

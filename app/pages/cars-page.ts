@@ -41,12 +41,16 @@ class CarsViewModel extends Observable {
   }
 
   addCar = async (): Promise<void> => {
-    if (await editCarDialog()) this.refresh()
+    if (await editCarDialog()) {
+      this.refresh()
+    }
   }
 
   openCar = (args: ItemEventData): void => {
     const car = this.cars[args.index]
-    if (car) Frame.topmost().navigate({ moduleName: 'pages/car-page', context: { carId: car.id } })
+    if (car) {
+      Frame.topmost().navigate({ moduleName: 'pages/car-page', context: { carId: car.id } })
+    }
   }
 
   moreMenu = async (): Promise<void> => {
@@ -73,6 +77,7 @@ export function navigatingTo(args: NavigatedData): void {
     vm = new CarsViewModel()
     page.bindingContext = vm
   }
+
   const model = vm
   // при първото отваряне базата може още да се отваря
   dbReady

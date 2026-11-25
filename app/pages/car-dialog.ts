@@ -13,7 +13,9 @@ export async function editCarDialog(car?: Car): Promise<Car | null> {
     cancelButtonText: L.common.cancel,
   })
   const name = (nameRes.text || '').trim()
-  if (!nameRes.result || !name) return null
+  if (!nameRes.result || !name) {
+    return null
+  }
 
   const plateRes = await Dialogs.prompt({
     title: name,
@@ -22,7 +24,9 @@ export async function editCarDialog(car?: Car): Promise<Car | null> {
     okButtonText: L.common.save,
     cancelButtonText: L.common.cancel,
   })
-  if (!plateRes.result) return null
+  if (!plateRes.result) {
+    return null
+  }
 
   return saveCar({ id: car?.id, name, plate: (plateRes.text || '').trim().toUpperCase() })
 }
