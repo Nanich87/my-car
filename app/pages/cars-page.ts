@@ -2,7 +2,6 @@ import { Dialogs, EventData, Frame, ItemEventData, Observable, Page } from '@nat
 import { daysText, documentStatus, getCars, getExpenses, money, sum } from '../data/store'
 import { editCarDialog } from './car-dialog'
 import { dbReady } from '../data/db'
-import { clearDemoData, hasDemoData, seedDemoData } from '../data/demo'
 import { scheduledCount, testNotification } from '../data/notify'
 
 let vm: Observable
@@ -49,12 +48,11 @@ export function openCar(args: ItemEventData) {
 }
 
 export async function moreMenu() {
-  const demo = hasDemoData()
   const count = await scheduledCount()
   const choice = await Dialogs.action({
     title: `Планирани известия: ${count}`,
     cancelButtonText: 'Затвори',
-    actions: ['Тестово известие (след 5 сек.)', demo ? 'Изтрий демо данните' : 'Добави демо данни'],
+    actions: ['Тестово известие (след 5 сек.)'],
   })
   if (choice === 'Тестово известие (след 5 сек.)') {
     const ok = await testNotification()
@@ -64,19 +62,5 @@ export async function moreMenu() {
         message: 'Разрешете известията за приложението от настройките на телефона.',
         okButtonText: 'OK',
       })
-  } else if (choice === 'Добави демо данни') {
-    seedDemoData()
-    refresh()
-  } else if (choice === 'Изтрий демо данните') {
-    const ok = await Dialogs.confirm({
-      title: 'Демо данни',
-      message: 'Ще бъдат изтрити само демо колите и техните разходи. Вашите данни остават.',
-      okButtonText: 'Изтрий',
-      cancelButtonText: 'Отказ',
-    })
-    if (ok) {
-      clearDemoData()
-      refresh()
-    }
   }
 }

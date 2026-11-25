@@ -227,25 +227,6 @@ function writeExpense(e: Expense) {
   for (const p of e.parts || []) exec('INSERT OR IGNORE INTO expense_parts (expense_id, part) VALUES (?, ?)', [e.id, p])
 }
 
-/** Добавя наведнъж коли и разходи (за демо данни). */
-export function bulkAdd(cars: Car[], expenses: Expense[]) {
-  transaction(() => {
-    for (const c of cars) exec('INSERT INTO cars (id, name, plate) VALUES (?, ?, ?)', [c.id, c.name, c.plate || ''])
-    for (const e of expenses) writeExpense(e)
-  })
-  changed()
-}
-
-/** Изтрива всички коли и разходи, чието id започва с prefix (+ всичко на тези коли). */
-export function deleteByIdPrefix(prefix: string) {
-  const like = prefix.replace(/[%_\\]/g, '\\$&') + '%'
-  transaction(() => {
-    exec("DELETE FROM expenses WHERE id LIKE ? ESCAPE '\\'", [like])
-    exec("DELETE FROM cars WHERE id LIKE ? ESCAPE '\\'", [like]) // каскадно трие разходите и интервалите им
-  })
-  changed()
-}
-
 // ---------- Автомобили ----------
 
 export function getCars(): Car[] {
