@@ -1,4 +1,4 @@
-import { ApplicationSettings } from '@nativescript/core'
+import { exec, query, queryOne, transaction } from './db'
 
 export interface Car {
   id: string
@@ -169,17 +169,7 @@ export function serviceItemName(key: string): string {
   return SERVICE_ITEMS.find((i) => i.key === key)?.name || key
 }
 
-const CARS_KEY = 'mycar.cars'
-const EXPENSES_KEY = 'mycar.expenses'
-const INTERVALS_KEY = 'mycar.intervals.'
-
-function load<T>(key: string): T[] {
-  try {
-    return JSON.parse(ApplicationSettings.getString(key, '[]')) as T[]
-  } catch {
-    return []
-  }
-}
+// ---------- Записване (SQLite, виж db.ts) ----------
 
 const changeListeners: (() => void)[] = []
 
@@ -188,8 +178,7 @@ export function onDataChanged(cb: () => void) {
   changeListeners.push(cb)
 }
 
-function save<T>(key: string, items: T[]) {
-  ApplicationSettings.setString(key, JSON.stringify(items))
+function changed() {
   for (const cb of changeListeners) {
     try {
       cb()
@@ -199,90 +188,112 @@ function save<T>(key: string, items: T[]) {
   }
 }
 
-/** Добавя наведнъж коли и разходи (за демо данни). */
-export function bulkAdd(cars: Car[], expenses: Expense[]) {
-  save(CARS_KEY, getCars().concat(cars))
-  save(EXPENSES_KEY, load<Expense>(EXPENSES_KEY).concat(expenses))
-}
-
-/** Изтрива всички коли и разходи, чието id започва с prefix (+ разходите на тези коли). */
-export function deleteByIdPrefix(prefix: string) {
-  const cars = getCars()
-  const removedCars = cars.filter((c) => c.id.startsWith(prefix)).map((c) => c.id)
-  save(CARS_KEY, cars.filter((c) => !c.id.startsWith(prefix)))
-  save(
-    EXPENSES_KEY,
-    load<Expense>(EXPENSES_KEY).filter((e) => !e.id.startsWith(prefix) && removedCars.indexOf(e.carId) < 0)
-  )
-  for (const id of removedCars) ApplicationSettings.remove(INTERVALS_KEY + id)
-}
-
 function newId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+}
+
+function rowToCar(r: any): Car {
+  return { id: r.id, name: r.name, plate: r.plate || '' }
+}
+
+/** Чете разходи по условие и им добавя сменените части. */
+function selectExpenses(where: string, params: any[]): Expense[] {
+  const rows = query(
+    `SELECT e.*, (SELECT group_concat(part) FROM expense_parts p WHERE p.expense_id = e.id) AS parts
+     FROM expenses e WHERE ${where} ORDER BY e.date DESC, e.rowid DESC`,
+    params
+  )
+  return rows.map((r: any) => {
+    const e: Expense = { id: r.id, carId: r.car_id, date: r.date, category: r.category, amount: r.amount }
+    if (r.odometer != null) e.odometer = r.odometer
+    if (r.liters != null) e.liters = r.liters
+    if (r.note != null) e.note = r.note
+    if (r.valid_until != null) e.validUntil = r.valid_until
+    if (r.parts) e.parts = String(r.parts).split(',')
+    return e
+  })
+}
+
+function writeExpense(e: Expense) {
+  exec(
+    `INSERT INTO expenses (id, car_id, date, category, amount, odometer, liters, note, valid_until)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET car_id = excluded.car_id, date = excluded.date, category = excluded.category,
+       amount = excluded.amount, odometer = excluded.odometer, liters = excluded.liters, note = excluded.note,
+       valid_until = excluded.valid_until`,
+    [e.id, e.carId, e.date, e.category, e.amount, e.odometer ?? null, e.liters ?? null, e.note ?? null, e.validUntil ?? null]
+  )
+  exec('DELETE FROM expense_parts WHERE expense_id = ?', [e.id])
+  for (const p of e.parts || []) exec('INSERT OR IGNORE INTO expense_parts (expense_id, part) VALUES (?, ?)', [e.id, p])
+}
+
+/** Добавя наведнъж коли и разходи (за демо данни). */
+export function bulkAdd(cars: Car[], expenses: Expense[]) {
+  transaction(() => {
+    for (const c of cars) exec('INSERT INTO cars (id, name, plate) VALUES (?, ?, ?)', [c.id, c.name, c.plate || ''])
+    for (const e of expenses) writeExpense(e)
+  })
+  changed()
+}
+
+/** Изтрива всички коли и разходи, чието id започва с prefix (+ всичко на тези коли). */
+export function deleteByIdPrefix(prefix: string) {
+  const like = prefix.replace(/[%_\\]/g, '\\$&') + '%'
+  transaction(() => {
+    exec("DELETE FROM expenses WHERE id LIKE ? ESCAPE '\\'", [like])
+    exec("DELETE FROM cars WHERE id LIKE ? ESCAPE '\\'", [like]) // каскадно трие разходите и интервалите им
+  })
+  changed()
 }
 
 // ---------- Автомобили ----------
 
 export function getCars(): Car[] {
-  return load<Car>(CARS_KEY)
+  return query('SELECT * FROM cars ORDER BY rowid').map(rowToCar)
 }
 
 export function getCar(id: string): Car | undefined {
-  return getCars().find((c) => c.id === id)
+  const r = queryOne('SELECT * FROM cars WHERE id = ?', [id])
+  return r ? rowToCar(r) : undefined
 }
 
 export function saveCar(car: Partial<Car> & { name: string }): Car {
-  const cars = getCars()
-  if (car.id) {
-    const i = cars.findIndex((c) => c.id === car.id)
-    if (i >= 0) {
-      cars[i] = { ...cars[i], ...car } as Car
-      save(CARS_KEY, cars)
-      return cars[i]
-    }
-  }
-  const created: Car = { id: newId(), name: car.name, plate: car.plate || '' }
-  cars.push(created)
-  save(CARS_KEY, cars)
-  return created
+  const existing = car.id ? getCar(car.id) : undefined
+  const res: Car = existing
+    ? { ...existing, ...car, plate: car.plate ?? existing.plate }
+    : { id: newId(), name: car.name, plate: car.plate || '' }
+  if (existing) exec('UPDATE cars SET name = ?, plate = ? WHERE id = ?', [res.name, res.plate, res.id])
+  else exec('INSERT INTO cars (id, name, plate) VALUES (?, ?, ?)', [res.id, res.name, res.plate])
+  changed()
+  return res
 }
 
 export function deleteCar(id: string) {
-  save(CARS_KEY, getCars().filter((c) => c.id !== id))
-  save(EXPENSES_KEY, load<Expense>(EXPENSES_KEY).filter((e) => e.carId !== id))
-  ApplicationSettings.remove(INTERVALS_KEY + id)
+  // ON DELETE CASCADE трие и разходите, частите и интервалите
+  exec('DELETE FROM cars WHERE id = ?', [id])
+  changed()
 }
 
 // ---------- Разходи ----------
 
 export function getExpenses(carId: string): Expense[] {
-  return load<Expense>(EXPENSES_KEY)
-    .filter((e) => e.carId === carId)
-    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+  return selectExpenses('e.car_id = ?', [carId])
 }
 
 export function getExpense(id: string): Expense | undefined {
-  return load<Expense>(EXPENSES_KEY).find((e) => e.id === id)
+  return selectExpenses('e.id = ?', [id])[0]
 }
 
 export function saveExpense(exp: Omit<Expense, 'id'> & { id?: string }): Expense {
-  const all = load<Expense>(EXPENSES_KEY)
-  if (exp.id) {
-    const i = all.findIndex((e) => e.id === exp.id)
-    if (i >= 0) {
-      all[i] = exp as Expense
-      save(EXPENSES_KEY, all)
-      return all[i]
-    }
-  }
-  const created: Expense = { ...exp, id: newId() }
-  all.push(created)
-  save(EXPENSES_KEY, all)
-  return created
+  const res = { ...exp, id: exp.id || newId() } as Expense
+  transaction(() => writeExpense(res))
+  changed()
+  return res
 }
 
 export function deleteExpense(id: string) {
-  save(EXPENSES_KEY, load<Expense>(EXPENSES_KEY).filter((e) => e.id !== id))
+  exec('DELETE FROM expenses WHERE id = ?', [id])
+  changed()
 }
 
 // ---------- Помощни ----------
@@ -339,22 +350,21 @@ export interface Interval {
 
 /** Интервали за конкретна кола (собствените настройки върху стойностите по подразбиране). */
 export function getIntervals(carId: string): Record<string, Interval> {
-  let custom: Record<string, Interval> = {}
-  try {
-    custom = JSON.parse(ApplicationSettings.getString(INTERVALS_KEY + carId, '{}'))
-  } catch {}
+  const custom: Record<string, Interval> = {}
+  for (const r of query('SELECT item_key, km, months FROM service_intervals WHERE car_id = ?', [carId]) as any[]) {
+    custom[r.item_key] = { km: r.km, months: r.months }
+  }
   const res: Record<string, Interval> = {}
   for (const i of SERVICE_ITEMS) res[i.key] = custom[i.key] || { km: i.km, months: i.months }
   return res
 }
 
 export function saveInterval(carId: string, key: string, interval: Interval) {
-  let custom: Record<string, Interval> = {}
-  try {
-    custom = JSON.parse(ApplicationSettings.getString(INTERVALS_KEY + carId, '{}'))
-  } catch {}
-  custom[key] = interval
-  ApplicationSettings.setString(INTERVALS_KEY + carId, JSON.stringify(custom))
+  exec(
+    `INSERT INTO service_intervals (car_id, item_key, km, months) VALUES (?, ?, ?, ?)
+     ON CONFLICT(car_id, item_key) DO UPDATE SET km = excluded.km, months = excluded.months`,
+    [carId, key, interval.km, interval.months]
+  )
 }
 
 /** Последният известен километраж на колата. */

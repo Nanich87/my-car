@@ -1,6 +1,7 @@
 import { Dialogs, EventData, Frame, ItemEventData, Observable, Page } from '@nativescript/core'
 import { daysText, documentStatus, getCars, getExpenses, money, sum } from '../data/store'
 import { editCarDialog } from './car-dialog'
+import { dbReady } from '../data/db'
 import { clearDemoData, hasDemoData, seedDemoData } from '../data/demo'
 import { scheduledCount, testNotification } from '../data/notify'
 
@@ -31,7 +32,11 @@ export function navigatingTo(args: EventData) {
   const page = <Page>args.object
   if (!vm) vm = new Observable()
   page.bindingContext = vm
-  refresh()
+  // при първото отваряне базата може още да се отваря
+  dbReady.then(refresh).catch((e) => {
+    console.error('dbReady', e)
+    Dialogs.alert({ title: 'Грешка', message: 'Базата данни не може да бъде отворена: ' + e, okButtonText: 'OK' })
+  })
 }
 
 export async function addCar() {
