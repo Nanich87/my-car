@@ -1,22 +1,22 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo">
   <ActionBar title="{{ title }}">
-    <NavigationButton text="Отказ" android.systemIcon="ic_menu_back" tap="goBack" />
+    <NavigationButton text="{{ t('common.cancel') }}" android.systemIcon="ic_menu_back" tap="goBack" />
     <ActionItem ios.position="right" android.position="actionBar">
       <ActionItem.actionView>
-        <Label text="Запази" tap="save" class="bar-btn" />
+        <Label text="{{ t('common.save') }}" tap="save" class="bar-btn" />
       </ActionItem.actionView>
     </ActionItem>
   </ActionBar>
 
   <ScrollView>
     <StackLayout class="form">
-      <Label text="Категория" class="field-label" />
+      <Label text="{{ t('expense.category') }}" class="field-label" />
       <ListPicker items="{{ categories }}" selectedIndex="{{ categoryIndex }}" height="120" />
 
-      <Label text="Сума (€) *" class="field-label" />
-      <TextField text="{{ amount }}" hint="0.00" keyboardType="number" class="input" />
+      <Label text="{{ t('expense.amount') }}" class="field-label" />
+      <TextField text="{{ amount }}" hint="{{ t('expense.amountHint') }}" keyboardType="number" class="input" />
 
-      <Label text="{{ isDocument ? 'Дата на плащане / начало' : 'Дата' }}" class="field-label" />
+      <Label text="{{ isDocument ? t('expense.datePaid') : t('expense.date') }}" class="field-label" />
       <android>
         <Label text="{{ dateText }}" tap="pickDate" class="input date-field" />
       </android>
@@ -25,10 +25,10 @@
       </ios>
 
       <StackLayout visibility="{{ isDocument ? 'visible' : 'collapsed' }}">
-        <Label text="Срок" class="field-label" />
+        <Label text="{{ t('expense.period') }}" class="field-label" />
         <ListPicker items="{{ periods }}" selectedIndex="{{ periodIndex }}" height="100" />
 
-        <Label text="Валидна до (включително)" class="field-label" />
+        <Label text="{{ t('expense.validUntil') }}" class="field-label" />
         <android>
           <Label text="{{ validUntilText }}" tap="pickValidUntil" class="input date-field valid-until" />
         </android>
@@ -37,11 +37,11 @@
         </ios>
       </StackLayout>
 
-      <Label text="Километраж (км)" class="field-label" />
-      <TextField text="{{ odometer }}" hint="по желание" keyboardType="number" class="input" />
+      <Label text="{{ t('expense.odometer') }}" class="field-label" />
+      <TextField text="{{ odometer }}" hint="{{ t('expense.optional') }}" keyboardType="number" class="input" />
 
       <StackLayout visibility="{{ isService ? 'visible' : 'collapsed' }}">
-        <Label text="Какво е сменено" class="field-label" />
+        <Label text="{{ t('expense.parts') }}" class="field-label" />
         <Repeater items="{{ parts }}">
           <Repeater.itemTemplate>
             <GridLayout columns="auto, *" class="{{ checked ? 'part-row part-on' : 'part-row' }}" tap="{{ toggle }}">
@@ -53,14 +53,14 @@
       </StackLayout>
 
       <StackLayout visibility="{{ isFuel ? 'visible' : 'collapsed' }}">
-        <Label text="Заредени литри" class="field-label" />
-        <TextField text="{{ liters }}" hint="за изчисляване на разхода л/100 км" keyboardType="number" class="input" />
+        <Label text="{{ t('expense.liters') }}" class="field-label" />
+        <TextField text="{{ liters }}" hint="{{ t('expense.litersHint') }}" keyboardType="number" class="input" />
       </StackLayout>
 
-      <Label text="Бележка" class="field-label" />
-      <TextView text="{{ note }}" hint="напр. смяна на масло и филтри" class="input" />
+      <Label text="{{ t('expense.note') }}" class="field-label" />
+      <TextView text="{{ note }}" hint="{{ t('expense.noteHint') }}" class="input" />
 
-      <Button text="Запази" tap="save" class="-primary" />
+      <Button text="{{ t('common.save') }}" tap="save" class="-primary" />
     </StackLayout>
   </ScrollView>
 </Page>

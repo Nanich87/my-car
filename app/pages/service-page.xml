@@ -1,12 +1,12 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo">
   <ActionBar title="{{ title }}">
-    <NavigationButton text="Назад" android.systemIcon="ic_menu_back" tap="goBack" />
+    <NavigationButton text="{{ t('common.back') }}" android.systemIcon="ic_menu_back" tap="goBack" />
   </ActionBar>
 
   <GridLayout rows="auto, *">
     <StackLayout row="0" class="summary">
       <Label text="{{ odometerText }}" class="big" />
-      <Label text="Натиснете част, за да отбележите смяна или да промените интервала." class="muted" textWrap="true" />
+      <Label text="{{ t('service.hint') }}" class="muted" textWrap="true" />
     </StackLayout>
 
     <ListView row="1" items="{{ items }}" itemTap="itemTap" separatorColor="#444">

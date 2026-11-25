@@ -3,13 +3,14 @@ import { daysText, documentStatus, getCars, getExpenses, money, sum } from '../d
 import { editCarDialog } from './car-dialog'
 import { dbReady } from '../data/db'
 import { scheduledCount, testNotification } from '../data/notify'
+import { L } from '../strings'
 
 let vm: Observable
 
 function alerts(carId: string, state: 'expired' | 'soon'): string {
   return documentStatus(carId)
     .filter((d) => d.state === state)
-    .map((d) => `${d.category}: ${daysText(d.daysLeft!)}`)
+    .map((d) => L.cars.alert(d.category, daysText(d.daysLeft!)))
     .join('\n')
 }
 
@@ -19,7 +20,7 @@ function refresh() {
     return {
       ...c,
       totalText: money(sum(exps)),
-      countText: exps.length + (exps.length === 1 ? ' разход' : ' разхода'),
+      countText: L.cars.expenseCount(exps.length),
       expiredText: alerts(c.id, 'expired'),
       soonText: alerts(c.id, 'soon'),
     }
@@ -34,7 +35,7 @@ export function navigatingTo(args: EventData) {
   // при първото отваряне базата може още да се отваря
   dbReady.then(refresh).catch((e) => {
     console.error('dbReady', e)
-    Dialogs.alert({ title: 'Грешка', message: 'Базата данни не може да бъде отворена: ' + e, okButtonText: 'OK' })
+    Dialogs.alert({ title: L.common.error, message: L.cars.dbError(e), okButtonText: L.common.ok })
   })
 }
 
@@ -50,17 +51,17 @@ export function openCar(args: ItemEventData) {
 export async function moreMenu() {
   const count = await scheduledCount()
   const choice = await Dialogs.action({
-    title: `Планирани известия: ${count}`,
-    cancelButtonText: 'Затвори',
-    actions: ['Тестово известие (след 5 сек.)'],
+    title: L.cars.scheduledNotifications(count),
+    cancelButtonText: L.common.close,
+    actions: [L.cars.testNotification],
   })
-  if (choice === 'Тестово известие (след 5 сек.)') {
+  if (choice === L.cars.testNotification) {
     const ok = await testNotification()
     if (!ok)
       await Dialogs.alert({
-        title: 'Известията са изключени',
-        message: 'Разрешете известията за приложението от настройките на телефона.',
-        okButtonText: 'OK',
+        title: L.cars.notificationsOffTitle,
+        message: L.cars.notificationsOffMessage,
+        okButtonText: L.common.ok,
       })
   }
 }

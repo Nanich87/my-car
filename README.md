@@ -55,6 +55,7 @@ ns build android        # APK в platforms/android/app/build/outputs/apk/
 app/
   app.ts                 входна точка; пренарежда известията при промяна на данните
   app.css                стилове (вкл. тъмен режим)
+  strings.ts             всички текстове на приложението (в XML: {{ t('car.total') }})
   data/
     db.ts                SQLite база: схема, миграции, транзакции
     store.ts             коли и разходи, категории, обслужване, документи

@@ -1,13 +1,13 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo">
-  <ActionBar title="Моите автомобили">
+  <ActionBar title="{{ t('cars.title') }}">
     <ActionItem ios.position="right" android.position="actionBar">
       <ActionItem.actionView>
-        <Label text="+ Кола" tap="addCar" class="bar-btn" />
+        <Label text="{{ t('cars.add') }}" tap="addCar" class="bar-btn" />
       </ActionItem.actionView>
     </ActionItem>
     <ActionItem ios.position="right" android.position="actionBar">
       <ActionItem.actionView>
-        <Label text="⋮" tap="moreMenu" class="bar-btn bar-more" />
+        <Label text="{{ t('cars.more') }}" tap="moreMenu" class="bar-btn bar-more" />
       </ActionItem.actionView>
     </ActionItem>
   </ActionBar>
@@ -31,8 +31,8 @@
     </ListView>
 
     <StackLayout class="empty" verticalAlignment="center" visibility="{{ cars.length ? 'collapsed' : 'visible' }}">
-      <Label text="Все още нямате добавени автомобили." textWrap="true" class="text-center" />
-      <Button text="Добави автомобил" tap="addCar" class="-primary" />
+      <Label text="{{ t('cars.empty') }}" textWrap="true" class="text-center" />
+      <Button text="{{ t('cars.addFirst') }}" tap="addCar" class="-primary" />
     </StackLayout>
   </GridLayout>
 </Page>

@@ -10,6 +10,7 @@ import {
   saveExpense,
   toIsoDate,
 } from '../data/store'
+import { L } from '../strings'
 
 let vm: Observable
 let carId: string
@@ -36,7 +37,7 @@ function currentCategory(): string {
 /** Обновява полетата, зависещи от категорията. */
 function applyCategory() {
   const category = currentCategory()
-  vm.set('isFuel', category === 'Гориво')
+  vm.set('isFuel', category === L.categories.fuel)
   vm.set('isService', SERVICE_CATEGORIES.indexOf(category) >= 0)
   const periods = DOCUMENT_PERIODS[category]
   vm.set('isDocument', !!periods)
@@ -65,7 +66,7 @@ export function navigatingTo(args: NavigatedData) {
   const catIndex = startCategory ? cats.indexOf(startCategory) : 0
 
   vm = new Observable()
-  vm.set('title', existing ? 'Редакция на разход' : 'Нов разход')
+  vm.set('title', existing ? L.expense.editTitle : L.expense.newTitle)
   vm.set('categories', cats)
   vm.set('categoryIndex', catIndex)
 
@@ -159,7 +160,7 @@ export async function save() {
   const anyPart = vm.get('isService') && vm.get('parts').some((p: Observable) => p.get('checked'))
   if (anyPart && (isNaN(amount) || amount === 0)) amount = 0
   else if (!(amount > 0)) {
-    await Dialogs.alert({ title: 'Грешка', message: 'Въведете валидна сума.', okButtonText: 'OK' })
+    await Dialogs.alert({ title: L.common.error, message: L.expense.invalidAmount, okButtonText: L.common.ok })
     return
   }
   const odometer = parseNum(vm.get('odometer'))
@@ -173,9 +174,9 @@ export async function save() {
   const validUntil = DOCUMENT_PERIODS[category] && vm.get('validUntil') ? toIsoDate(vm.get('validUntil')) : undefined
   if (validUntil && validUntil < date) {
     await Dialogs.alert({
-      title: 'Грешка',
-      message: '„Валидна до“ не може да е преди датата на плащане.',
-      okButtonText: 'OK',
+      title: L.common.error,
+      message: L.expense.validBeforeDate,
+      okButtonText: L.common.ok,
     })
     return
   }
@@ -187,7 +188,7 @@ export async function save() {
     amount: Math.round(amount * 100) / 100,
     date,
     odometer: odometer > 0 ? Math.round(odometer) : undefined,
-    liters: category === 'Гориво' && liters > 0 ? liters : undefined,
+    liters: category === L.categories.fuel && liters > 0 ? liters : undefined,
     note: (vm.get('note') || '').trim() || undefined,
     parts: parts.length ? parts : undefined,
     validUntil,

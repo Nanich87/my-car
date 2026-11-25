@@ -1,9 +1,9 @@
 <Page xmlns="http://schemas.nativescript.org/tns.xsd" navigatingTo="navigatingTo">
   <ActionBar title="{{ car.name }}">
-    <NavigationButton text="Назад" android.systemIcon="ic_menu_back" tap="goBack" />
+    <NavigationButton text="{{ t('common.back') }}" android.systemIcon="ic_menu_back" tap="goBack" />
     <ActionItem ios.position="right" android.position="actionBar">
       <ActionItem.actionView>
-        <Label text="Опции" tap="carOptions" class="bar-btn" />
+        <Label text="{{ t('car.options') }}" tap="carOptions" class="bar-btn" />
       </ActionItem.actionView>
     </ActionItem>
   </ActionBar>
@@ -17,7 +17,7 @@
       <Label text="{{ car.plate }}" class="muted" visibility="{{ car.plate ? 'visible' : 'collapsed' }}" />
       <GridLayout columns="*, *, *">
         <StackLayout col="0">
-          <Label text="Общо" class="muted" />
+          <Label text="{{ t('car.total') }}" class="muted" />
           <Label text="{{ totalText }}" class="big" />
         </StackLayout>
         <StackLayout col="1">
@@ -25,11 +25,11 @@
           <Label text="{{ yearText }}" class="big" />
         </StackLayout>
         <StackLayout col="2">
-          <Label text="Разход гориво" class="muted" />
+          <Label text="{{ t('car.fuelConsumption') }}" class="muted" />
           <Label text="{{ consumptionText }}" class="big" />
         </StackLayout>
       </GridLayout>
-      <Label text="Документи" class="section-title" />
+      <Label text="{{ t('car.documents') }}" class="section-title" />
       <Repeater items="{{ docs }}">
         <Repeater.itemTemplate>
           <GridLayout columns="auto, *, auto" class="doc-row" tap="{{ open }}">
@@ -40,7 +40,7 @@
         </Repeater.itemTemplate>
       </Repeater>
 
-      <Label text="По категории" class="section-title" visibility="{{ categories.length ? 'visible' : 'collapsed' }}" />
+      <Label text="{{ t('car.byCategory') }}" class="section-title" visibility="{{ categories.length ? 'visible' : 'collapsed' }}" />
       <Repeater items="{{ categories }}">
         <Repeater.itemTemplate>
           <GridLayout columns="*, auto" class="cat-row">
@@ -63,13 +63,13 @@
         </GridLayout>
       </Repeater.itemTemplate>
     </Repeater>
-    <Label text="Няма въведени разходи." class="muted text-center empty" visibility="{{ expenses.length ? 'collapsed' : 'visible' }}" />
+    <Label text="{{ t('car.noExpenses') }}" class="muted text-center empty" visibility="{{ expenses.length ? 'collapsed' : 'visible' }}" />
     </StackLayout>
     </ScrollView>
 
     <GridLayout row="1" columns="*, *" class="bottom-bar">
       <Button col="0" text="{{ serviceButtonText }}" tap="openService" class="-secondary-btn" />
-      <Button col="1" text="+ Разход" tap="addExpense" class="-primary" />
+      <Button col="1" text="{{ t('car.addExpense') }}" tap="addExpense" class="-primary" />
     </GridLayout>
   </GridLayout>
 </Page>

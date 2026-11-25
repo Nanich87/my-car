@@ -1,4 +1,5 @@
 import { exec, query, queryOne, transaction } from './db'
+import { L } from '../strings'
 
 export interface Car {
   id: string
@@ -22,23 +23,12 @@ export interface Expense {
   validUntil?: string
 }
 
-export const CATEGORIES = [
-  'Гориво',
-  'Обслужване',
-  'Ремонт',
-  'Гуми',
-  'Винетка',
-  'Гражданска отговорност',
-  'Технически преглед',
-  'Каско',
-  'Данък',
-  'Паркинг',
-  'Измиване',
-  'Глоба',
-  'Друго',
-]
+const C = L.categories
 
-export const CURRENCY = '€'
+/** Категориите в реда, в който се показват. */
+export const CATEGORIES = Object.values(C)
+
+export const CURRENCY = L.units.currency
 
 // ---------- Документи със срок ----------
 
@@ -50,32 +40,20 @@ export interface Period {
 
 /** Категории със срок на валидност и възможните им периоди (първият е по подразбиране). */
 export const DOCUMENT_PERIODS: Record<string, Period[]> = {
-  Винетка: [
-    { label: 'Годишна', months: 12 },
-    { label: 'Тримесечна', months: 3 },
-    { label: 'Месечна', months: 1 },
-    { label: 'Седмична', days: 7 },
-    { label: 'Уикенд', days: 3 },
+  [C.vignette]: [
+    { label: L.periods.annual, months: 12 },
+    { label: L.periods.quarterly, months: 3 },
+    { label: L.periods.monthly, months: 1 },
+    { label: L.periods.weekly, days: 7 },
+    { label: L.periods.weekend, days: 3 },
   ],
-  'Гражданска отговорност': [
-    { label: '12 месеца', months: 12 },
-    { label: '6 месеца', months: 6 },
-    { label: '3 месеца', months: 3 },
-    { label: '1 месец', months: 1 },
-  ],
-  'Технически преглед': [
-    { label: '1 година', months: 12 },
-    { label: '2 години', months: 24 },
-    { label: '3 години', months: 36 },
-  ],
-  Каско: [
-    { label: '12 месеца', months: 12 },
-    { label: '6 месеца', months: 6 },
-  ],
+  [C.liability]: [12, 6, 3, 1].map((m) => ({ label: L.periods.months(m), months: m })),
+  [C.inspection]: [1, 2, 3].map((y) => ({ label: L.periods.years(y), months: y * 12 })),
+  [C.casco]: [12, 6].map((m) => ({ label: L.periods.months(m), months: m })),
 }
 
 /** Винаги показвани в „Документи“ на колата (каско – само ако има запис). */
-export const TRACKED_DOCUMENTS = ['Винетка', 'Гражданска отговорност', 'Технически преглед']
+export const TRACKED_DOCUMENTS = [C.vignette, C.liability, C.inspection]
 
 /** Последен ден на валидност: начална дата + период − 1 ден. */
 export function computeExpiry(startIso: string, period: Period): string {
@@ -113,7 +91,7 @@ export interface DocumentStatus {
 export function documentStatus(carId: string): DocumentStatus[] {
   const exps = getExpenses(carId).filter((e) => e.validUntil)
   const cats = TRACKED_DOCUMENTS.slice()
-  if (exps.some((e) => e.category === 'Каско')) cats.push('Каско')
+  if (exps.some((e) => e.category === C.casco)) cats.push(C.casco)
   return cats.map((category) => {
     const last = exps
       .filter((e) => e.category === category)
@@ -126,13 +104,13 @@ export function documentStatus(carId: string): DocumentStatus[] {
 }
 
 export function daysText(n: number): string {
-  if (n === 0) return 'изтича днес'
-  if (n < 0) return `изтече преди ${-n} ${-n === 1 ? 'ден' : 'дни'}`
-  return `остават ${n} ${n === 1 ? 'ден' : 'дни'}`
+  if (n === 0) return L.docs.expiresToday
+  if (n < 0) return L.docs.expiredAgo(-n)
+  return L.docs.daysLeft(n)
 }
 
 /** Категории, при които може да се отбележи какво е сменено. */
-export const SERVICE_CATEGORIES = ['Обслужване', 'Ремонт', 'Гуми']
+export const SERVICE_CATEGORIES = [C.service, C.repair, C.tires]
 
 export interface ServiceItem {
   key: string
@@ -144,25 +122,25 @@ export interface ServiceItem {
 }
 
 export const SERVICE_ITEMS: ServiceItem[] = [
-  { key: 'oil', name: 'Масло двигател', km: 10000, months: 12 },
-  { key: 'oilFilter', name: 'Маслен филтър', km: 10000, months: 12 },
-  { key: 'airFilter', name: 'Въздушен филтър', km: 20000, months: 24 },
-  { key: 'cabinFilter', name: 'Филтър купе', km: 15000, months: 12 },
-  { key: 'fuelFilter', name: 'Горивен филтър', km: 40000, months: 48 },
-  { key: 'timing', name: 'Ангренаж (ремък/ролки)', km: 90000, months: 60 },
-  { key: 'auxBelt', name: 'Пистов ремък', km: 60000, months: 48 },
-  { key: 'sparkPlugs', name: 'Свещи', km: 40000, months: 48 },
-  { key: 'brakePadsF', name: 'Накладки предни', km: 40000, months: 0 },
-  { key: 'brakePadsR', name: 'Накладки задни', km: 60000, months: 0 },
-  { key: 'brakeDiscs', name: 'Спирачни дискове', km: 80000, months: 0 },
-  { key: 'brakeFluid', name: 'Спирачна течност', km: 0, months: 24 },
-  { key: 'coolant', name: 'Антифриз', km: 0, months: 48 },
-  { key: 'gearboxOil', name: 'Масло скоростна кутия', km: 60000, months: 0 },
-  { key: 'battery', name: 'Акумулатор', km: 0, months: 60 },
-  { key: 'wipers', name: 'Чистачки', km: 0, months: 12 },
-  { key: 'tiresSummer', name: 'Летни гуми', km: 0, months: 0 },
-  { key: 'tiresWinter', name: 'Зимни гуми', km: 0, months: 0 },
-  { key: 'acService', name: 'Климатик (зареждане)', km: 0, months: 24 },
+  { key: 'oil', name: L.parts.oil, km: 10000, months: 12 },
+  { key: 'oilFilter', name: L.parts.oilFilter, km: 10000, months: 12 },
+  { key: 'airFilter', name: L.parts.airFilter, km: 20000, months: 24 },
+  { key: 'cabinFilter', name: L.parts.cabinFilter, km: 15000, months: 12 },
+  { key: 'fuelFilter', name: L.parts.fuelFilter, km: 40000, months: 48 },
+  { key: 'timing', name: L.parts.timing, km: 90000, months: 60 },
+  { key: 'auxBelt', name: L.parts.auxBelt, km: 60000, months: 48 },
+  { key: 'sparkPlugs', name: L.parts.sparkPlugs, km: 40000, months: 48 },
+  { key: 'brakePadsF', name: L.parts.brakePadsF, km: 40000, months: 0 },
+  { key: 'brakePadsR', name: L.parts.brakePadsR, km: 60000, months: 0 },
+  { key: 'brakeDiscs', name: L.parts.brakeDiscs, km: 80000, months: 0 },
+  { key: 'brakeFluid', name: L.parts.brakeFluid, km: 0, months: 24 },
+  { key: 'coolant', name: L.parts.coolant, km: 0, months: 48 },
+  { key: 'gearboxOil', name: L.parts.gearboxOil, km: 60000, months: 0 },
+  { key: 'battery', name: L.parts.battery, km: 0, months: 60 },
+  { key: 'wipers', name: L.parts.wipers, km: 0, months: 12 },
+  { key: 'tiresSummer', name: L.parts.tiresSummer, km: 0, months: 0 },
+  { key: 'tiresWinter', name: L.parts.tiresWinter, km: 0, months: 0 },
+  { key: 'acService', name: L.parts.acService, km: 0, months: 24 },
 ]
 
 export function serviceItemName(key: string): string {
@@ -312,7 +290,7 @@ export function byCategory(expenses: Expense[]): { category: string; total: numb
  */
 export function fuelConsumption(expenses: Expense[]): number | null {
   const fills = expenses
-    .filter((e) => e.category === 'Гориво' && e.odometer && e.liters)
+    .filter((e) => e.category === C.fuel && e.odometer && e.liters)
     .sort((a, b) => a.odometer! - b.odometer!)
   if (fills.length < 2) return null
   const distance = fills[fills.length - 1].odometer! - fills[0].odometer!
@@ -402,5 +380,5 @@ export function serviceStatus(carId: string): ServiceStatus[] {
 }
 
 export function formatKm(km: number): string {
-  return String(Math.round(km)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' км'
+  return L.units.km(km)
 }

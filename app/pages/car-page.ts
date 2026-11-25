@@ -14,20 +14,15 @@ import {
   sum,
 } from '../data/store'
 import { editCarDialog } from './car-dialog'
+import { L } from '../strings'
 
 let vm: Observable
 let carId: string
 
-/** Кратки имена, за да се събират на един ред. */
-const DOC_SHORT: Record<string, string> = {
-  'Гражданска отговорност': 'ГО',
-  'Технически преглед': 'Техн. преглед',
-}
-
 function shortDays(n: number): string {
-  if (n < 0) return 'изтече!'
-  if (n === 0) return 'днес'
-  return n === 1 ? '1 ден' : `${n} дни`
+  if (n < 0) return L.car.docExpired
+  if (n === 0) return L.car.docToday
+  return L.units.days(n)
 }
 
 function refresh() {
@@ -42,22 +37,22 @@ function refresh() {
   const st = serviceStatus(carId)
   const overdue = st.filter((x) => x.state === 'overdue').length
   const soon = st.filter((x) => x.state === 'soon').length
-  vm.set('serviceButtonText', overdue ? `Обслужване (${overdue}!)` : soon ? `Обслужване (${soon})` : 'Обслужване')
+  vm.set('serviceButtonText', overdue ? L.car.serviceOverdue(overdue) : soon ? L.car.serviceSoon(soon) : L.car.service)
   vm.set(
     'docs',
     documentStatus(carId).map((d) => ({
-      name: DOC_SHORT[d.category] || d.category,
+      name: L.categoryShort[d.category] || d.category,
       state: d.state,
-      text: d.validUntil ? `до ${formatDate(d.validUntil)} · ${shortDays(d.daysLeft!)}` : 'няма запис',
+      text: d.validUntil ? L.car.docUntil(formatDate(d.validUntil), shortDays(d.daysLeft!)) : L.car.noRecord,
       // натискане = подновяване (нов разход с тази категория)
       open: () =>
         Frame.topmost().navigate({ moduleName: 'pages/expense-page', context: { carId, category: d.category } }),
     }))
   )
   vm.set('totalText', money(sum(exps)))
-  vm.set('yearLabel', 'През ' + year)
+  vm.set('yearLabel', L.car.inYear(year))
   vm.set('yearText', money(sum(thisYear)))
-  vm.set('consumptionText', cons == null ? '—' : cons.toFixed(1) + ' л/100')
+  vm.set('consumptionText', cons == null ? L.common.dash : L.car.fuelValue(cons.toFixed(1)))
   vm.set(
     'categories',
     byCategory(exps).map((c) => ({ category: c.category, totalText: money(c.total) }))
@@ -66,9 +61,9 @@ function refresh() {
     'expenses',
     exps.map((e) => {
       const parts = [formatDate(e.date)]
-      if (e.odometer) parts.push(e.odometer + ' км')
-      if (e.liters) parts.push(e.liters + ' л')
-      if (e.validUntil) parts.push('валидна до ' + formatDate(e.validUntil))
+      if (e.odometer) parts.push(L.units.kmShort(e.odometer))
+      if (e.liters) parts.push(L.units.liters(e.liters))
+      if (e.validUntil) parts.push(L.car.validUntil(formatDate(e.validUntil)))
       if (e.parts?.length) parts.push(e.parts.map(serviceItemName).join(', '))
       if (e.note) parts.push(e.note)
       const item = { ...e, amountText: money(e.amount), details: parts.join(' · '), open: () => expenseTap(item) }
@@ -93,18 +88,18 @@ export function addExpense() {
 
 async function expenseTap(exp: { id: string; category: string; amountText: string }) {
   const choice = await Dialogs.action({
-    title: `${exp.category} – ${exp.amountText}`,
-    cancelButtonText: 'Отказ',
-    actions: ['Редактирай', 'Изтрий'],
+    title: L.car.expenseTitle(exp.category, exp.amountText),
+    cancelButtonText: L.common.cancel,
+    actions: [L.common.edit, L.common.delete],
   })
-  if (choice === 'Редактирай') {
+  if (choice === L.common.edit) {
     Frame.topmost().navigate({ moduleName: 'pages/expense-page', context: { carId, expenseId: exp.id } })
-  } else if (choice === 'Изтрий') {
+  } else if (choice === L.common.delete) {
     const ok = await Dialogs.confirm({
-      title: 'Изтриване',
-      message: 'Сигурни ли сте, че искате да изтриете този разход?',
-      okButtonText: 'Изтрий',
-      cancelButtonText: 'Отказ',
+      title: L.common.deleting,
+      message: L.car.deleteExpenseConfirm,
+      okButtonText: L.common.delete,
+      cancelButtonText: L.common.cancel,
     })
     if (ok) {
       deleteExpense(exp.id)
@@ -117,17 +112,17 @@ export async function carOptions(args: EventData) {
   const car = getCar(carId)
   const choice = await Dialogs.action({
     title: car.name,
-    cancelButtonText: 'Отказ',
-    actions: ['Редактирай автомобила', 'Изтрий автомобила'],
+    cancelButtonText: L.common.cancel,
+    actions: [L.car.editCar, L.car.deleteCar],
   })
-  if (choice === 'Редактирай автомобила') {
+  if (choice === L.car.editCar) {
     if (await editCarDialog(car)) refresh()
-  } else if (choice === 'Изтрий автомобила') {
+  } else if (choice === L.car.deleteCar) {
     const ok = await Dialogs.confirm({
-      title: 'Изтриване',
-      message: `Ще бъдат изтрити „${car.name}“ и всички негови разходи. Продължаване?`,
-      okButtonText: 'Изтрий',
-      cancelButtonText: 'Отказ',
+      title: L.common.deleting,
+      message: L.car.deleteCarConfirm(car.name),
+      okButtonText: L.common.delete,
+      cancelButtonText: L.common.cancel,
     })
     if (ok) {
       deleteCar(carId)

@@ -7,7 +7,11 @@ purpose of the file is to pass control to the app’s first module.
 import { Application } from '@nativescript/core'
 import { onDataChanged } from './data/store'
 import { dbReady } from './data/db'
+import { t } from './strings'
 import { rescheduleNotifications } from './data/notify'
+
+// текстовете в XML: {{ t('cars.title') }}
+Application.setResources({ ...Application.getResources(), t })
 
 // известията се преизчисляват при всяка промяна на данните и при стартиране
 onDataChanged(() => rescheduleNotifications())

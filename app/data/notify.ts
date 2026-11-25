@@ -1,17 +1,12 @@
 import { ApplicationSettings, Utils, isAndroid } from '@nativescript/core'
 import { LocalNotifications, ScheduleOptions } from '@nativescript/local-notifications'
 import { formatDate, getCars, documentStatus } from './store'
+import { L } from '../strings'
 
 /** Колко дни преди изтичане да има напомняне (0 = в деня на изтичане). */
 export const REMIND_DAYS_BEFORE = [30, 7, 1, 0]
 /** Час на известието (местно време). */
 const REMIND_HOUR = 10
-
-function whenText(days: number): string {
-  if (days === 0) return 'изтича днес'
-  if (days === 1) return 'изтича утре'
-  return `изтича след ${days} дни`
-}
 
 /** Всички бъдещи напомняния за документи (винетка, ГО, ТП, каско). */
 export function buildReminders(): ScheduleOptions[] {
@@ -29,10 +24,10 @@ export function buildReminders(): ScheduleOptions[] {
         if (at.getTime() <= now) continue
         res.push({
           id: id++,
-          title: `${doc.category} ${whenText(days)}`,
-          body: `${carName} – валидна до ${formatDate(doc.validUntil)}`,
+          title: L.notify.title(doc.category, L.notify.expires(days)),
+          body: L.notify.body(carName, formatDate(doc.validUntil)),
           at,
-          channel: 'Изтичащи документи',
+          channel: L.notify.channel,
           forceShowWhenInForeground: true,
         })
       }
@@ -100,10 +95,10 @@ export async function testNotification(): Promise<boolean> {
   await LocalNotifications.schedule([
     {
       id: 999,
-      title: 'Винетка изтича след 7 дни',
-      body: 'Тестово известие от „Моята кола“',
+      title: L.notify.testTitle,
+      body: L.notify.testBody,
       at: new Date(Date.now() + 5000),
-      channel: 'Изтичащи документи',
+      channel: L.notify.channel,
       forceShowWhenInForeground: true,
     },
   ])
