@@ -2,18 +2,18 @@
   <ActionBar title="{{ t('cars.title') }}">
     <ActionItem ios.position="right" android.position="actionBar">
       <ActionItem.actionView>
-        <Label text="{{ t('cars.add') }}" tap="addCar" class="bar-btn" />
+        <Label text="{{ t('cars.add') }}" tap="{{ addCar }}" class="bar-btn" />
       </ActionItem.actionView>
     </ActionItem>
     <ActionItem ios.position="right" android.position="actionBar">
       <ActionItem.actionView>
-        <Label text="{{ t('cars.more') }}" tap="moreMenu" class="bar-btn bar-more" />
+        <Label text="{{ t('cars.more') }}" tap="{{ moreMenu }}" class="bar-btn bar-more" />
       </ActionItem.actionView>
     </ActionItem>
   </ActionBar>
 
   <GridLayout rows="*">
-    <ListView items="{{ cars }}" itemTap="openCar" separatorColor="#ddd" visibility="{{ cars.length ? 'visible' : 'collapsed' }}">
+    <ListView items="{{ cars }}" itemTap="{{ openCar }}" visibility="{{ cars.length ? 'visible' : 'collapsed' }}">
       <ListView.itemTemplate>
         <GridLayout columns="*, auto" class="car-row">
           <StackLayout col="0">
@@ -32,7 +32,7 @@
 
     <StackLayout class="empty" verticalAlignment="center" visibility="{{ cars.length ? 'collapsed' : 'visible' }}">
       <Label text="{{ t('cars.empty') }}" textWrap="true" class="text-center" />
-      <Button text="{{ t('cars.addFirst') }}" tap="addCar" class="-primary" />
+      <Button text="{{ t('cars.addFirst') }}" tap="{{ addCar }}" class="-primary" />
     </StackLayout>
   </GridLayout>
 </Page>

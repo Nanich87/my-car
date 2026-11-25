@@ -1,5 +1,6 @@
 import { Dialogs } from '@nativescript/core'
-import { Car, saveCar } from '../data/store'
+import { Car } from '../data/model'
+import { saveCar } from '../data/store'
 import { L } from '../strings'
 
 /** Диалог за добавяне/редакция на автомобил. Връща записания автомобил или null. */

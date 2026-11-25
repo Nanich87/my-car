@@ -3,7 +3,7 @@
     <NavigationButton text="{{ t('common.back') }}" android.systemIcon="ic_menu_back" tap="goBack" />
     <ActionItem ios.position="right" android.position="actionBar">
       <ActionItem.actionView>
-        <Label text="{{ t('car.options') }}" tap="carOptions" class="bar-btn" />
+        <Label text="{{ t('car.options') }}" tap="{{ carOptions }}" class="bar-btn" />
       </ActionItem.actionView>
     </ActionItem>
   </ActionBar>
@@ -56,7 +56,7 @@
       <Repeater.itemTemplate>
         <GridLayout columns="*, auto" class="exp-row exp-sep" tap="{{ open }}">
           <StackLayout col="0">
-            <Label text="{{ category }}" class="exp-cat" />
+            <Label text="{{ categoryText }}" class="exp-cat" />
             <Label text="{{ details }}" class="muted" textWrap="true" />
           </StackLayout>
           <Label col="1" text="{{ amountText }}" class="amount" verticalAlignment="center" />
@@ -68,8 +68,8 @@
     </ScrollView>
 
     <GridLayout row="1" columns="*, *" class="bottom-bar">
-      <Button col="0" text="{{ serviceButtonText }}" tap="openService" class="-secondary-btn" />
-      <Button col="1" text="{{ t('car.addExpense') }}" tap="addExpense" class="-primary" />
+      <Button col="0" text="{{ serviceButtonText }}" tap="{{ openService }}" class="-secondary-btn" />
+      <Button col="1" text="{{ t('car.addExpense') }}" tap="{{ addExpense }}" class="-primary" />
     </GridLayout>
   </GridLayout>
 </Page>

@@ -4,8 +4,9 @@
  * В TypeScript: `import { L } from '../strings'` → `L.car.total`.
  * В XML: `text="{{ t('car.total') }}"` – функцията `t` е регистрирана в app.ts като ресурс на приложението.
  *
- * ВНИМАНИЕ: имената в `categories` се пазят в базата като стойност на разхода
- * (колона expenses.category). Ако се сменят, старите записи няма да се разпознават.
+ * Числата се форматират в data/format.ts; тук функциите получават вече форматиран текст.
+ * В базата се пазят само ключове (напр. категория `fuel`), затова текстовете тук
+ * могат да се сменят и превеждат свободно.
  */
 
 const plural = (n: number, one: string, many: string) => (Math.abs(n) === 1 ? one : many)
@@ -28,15 +29,16 @@ export const L = {
   },
 
   units: {
-    km: (km: number) => String(Math.round(km)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' км',
-    kmShort: (km: number) => `${km} км`,
-    liters: (l: number) => `${l} л`,
+    km: (km: string) => `${km} км`,
+    liters: (l: string) => `${l} л`,
+    money: (amount: string) => `${amount} €`,
     months: (m: number) => `${m} мес.`,
     days: (n: number) => `${n} ${plural(n, 'ден', 'дни')}`,
-    currency: '€',
+    decimalSeparator: ',',
+    thousandsSeparator: '\u00a0',
   },
 
-  /** Стойностите се пазят в базата – виж бележката горе. */
+  /** Имена на категориите по ключ (ключът се пази в базата). */
   categories: {
     fuel: 'Гориво',
     service: 'Обслужване',
@@ -55,8 +57,8 @@ export const L = {
 
   /** Кратки имена на документите (за да се събират на един ред). */
   categoryShort: {
-    'Гражданска отговорност': 'ГО',
-    'Технически преглед': 'Техн. преглед',
+    liability: 'ГО',
+    inspection: 'Техн. преглед',
   } as Record<string, string>,
 
   /** Части и консумативи за обслужване (ключът се пази в базата, името – не). */
@@ -166,6 +168,7 @@ export const L = {
     note: 'Бележка',
     noteHint: 'напр. смяна на масло и филтри',
     invalidAmount: 'Въведете валидна сума.',
+    invalidNumber: (field: string) => `Невалидна стойност в „${field}“.`,
     validBeforeDate: '„Валидна до“ не може да е преди датата на плащане.',
   },
 
@@ -196,8 +199,7 @@ export const L = {
 
   notify: {
     channel: 'Изтичащи документи',
-    expires: (days: number) =>
-      days === 0 ? 'изтича днес' : days === 1 ? 'изтича утре' : `изтича след ${days} дни`,
+    expires: (days: number) => (days === 0 ? 'изтича днес' : days === 1 ? 'изтича утре' : `изтича след ${days} дни`),
     title: (category: string, when: string) => `${category} ${when}`,
     body: (car: string, date: string) => `${car} – валидна до ${date}`,
     testTitle: 'Винетка изтича след 7 дни',
@@ -207,6 +209,8 @@ export const L = {
 
 /** Текст по път, напр. t('car.total'). Връща самия път, ако няма такъв текст. */
 export function t(path: string): string {
-  const v = path.split('.').reduce((o: any, k) => (o == null ? o : o[k]), L)
+  const v = path
+    .split('.')
+    .reduce<unknown>((o, k) => (o != null && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), L)
   return typeof v === 'string' ? v : path
 }

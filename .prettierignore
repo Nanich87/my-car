@@ -1,0 +1,7 @@
+node_modules/
+platforms/
+hooks/
+.test-dist/
+package-lock.json
+App_Resources/
+docs/

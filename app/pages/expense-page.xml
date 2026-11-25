@@ -3,7 +3,7 @@
     <NavigationButton text="{{ t('common.cancel') }}" android.systemIcon="ic_menu_back" tap="goBack" />
     <ActionItem ios.position="right" android.position="actionBar">
       <ActionItem.actionView>
-        <Label text="{{ t('common.save') }}" tap="save" class="bar-btn" />
+        <Label text="{{ t('common.save') }}" tap="{{ save }}" class="bar-btn" />
       </ActionItem.actionView>
     </ActionItem>
   </ActionBar>
@@ -14,11 +14,11 @@
       <ListPicker items="{{ categories }}" selectedIndex="{{ categoryIndex }}" height="120" />
 
       <Label text="{{ t('expense.amount') }}" class="field-label" />
-      <TextField text="{{ amount }}" hint="{{ t('expense.amountHint') }}" keyboardType="number" class="input" />
+      <TextField text="{{ amount }}" loaded="{{ decimalField }}" hint="{{ t('expense.amountHint') }}" keyboardType="number" class="input" />
 
       <Label text="{{ isDocument ? t('expense.datePaid') : t('expense.date') }}" class="field-label" />
       <android>
-        <Label text="{{ dateText }}" tap="pickDate" class="input date-field" />
+        <Label text="{{ dateText }}" tap="{{ pickDate }}" class="input date-field" />
       </android>
       <ios>
         <DatePicker date="{{ date }}" height="120" />
@@ -30,7 +30,7 @@
 
         <Label text="{{ t('expense.validUntil') }}" class="field-label" />
         <android>
-          <Label text="{{ validUntilText }}" tap="pickValidUntil" class="input date-field valid-until" />
+          <Label text="{{ validUntilText }}" tap="{{ pickValidUntil }}" class="input date-field valid-until" />
         </android>
         <ios>
           <DatePicker date="{{ validUntil }}" height="120" />
@@ -54,13 +54,13 @@
 
       <StackLayout visibility="{{ isFuel ? 'visible' : 'collapsed' }}">
         <Label text="{{ t('expense.liters') }}" class="field-label" />
-        <TextField text="{{ liters }}" hint="{{ t('expense.litersHint') }}" keyboardType="number" class="input" />
+        <TextField text="{{ liters }}" loaded="{{ decimalField }}" hint="{{ t('expense.litersHint') }}" keyboardType="number" class="input" />
       </StackLayout>
 
       <Label text="{{ t('expense.note') }}" class="field-label" />
       <TextView text="{{ note }}" hint="{{ t('expense.noteHint') }}" class="input" />
 
-      <Button text="{{ t('common.save') }}" tap="save" class="-primary" />
+      <Button text="{{ t('common.save') }}" tap="{{ save }}" class="-primary" />
     </StackLayout>
   </ScrollView>
 </Page>

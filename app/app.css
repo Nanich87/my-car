@@ -1,11 +1,34 @@
 @import '@nativescript/theme/css/core.css';
 @import '@nativescript/theme/css/default.css';
 
+/*
+ * Основните цветове са за светлата тема; `.ns-dark …` ги сменя за тъмната.
+ * Статусите (наред / скоро / изтекло) са по-тъмни на бял фон, за да имат достатъчен контраст.
+ */
+
+/* ---------- Лента и бутони ---------- */
+
 ActionBar,
 .ns-light ActionBar,
 .ns-dark ActionBar {
   background-color: #1f6feb;
   color: #ffffff;
+}
+
+NavigationButton {
+  color: #ffffff;
+}
+
+.bar-btn {
+  color: #ffffff;
+  font-size: 16;
+  font-weight: bold;
+  padding: 0 16;
+}
+
+.bar-more {
+  font-size: 22;
+  padding: 0 14 0 4;
 }
 
 Button.-primary,
@@ -16,10 +39,71 @@ Button.-primary,
   color: #ffffff;
 }
 
+Button.-secondary-btn,
+.ns-light Button.-secondary-btn,
+.ns-dark Button.-secondary-btn {
+  font-size: 18;
+  background-color: #3a4556;
+  color: #ffffff;
+}
+
+.bottom-bar {
+  padding: 6 6;
+}
+
+.bottom-bar Button {
+  margin: 4;
+}
+
+/* ---------- Общи ---------- */
+
 .muted {
-  color: #777;
+  color: #666;
   font-size: 13;
 }
+
+.empty {
+  padding: 30;
+}
+
+.big {
+  font-size: 17;
+  font-weight: bold;
+}
+
+.amount {
+  font-size: 16;
+  font-weight: bold;
+  color: #c62828;
+}
+
+ListView {
+  separator-color: #e0e0e0;
+}
+
+.exp-sep {
+  border-bottom-width: 1;
+  border-bottom-color: #e0e0e0;
+}
+
+.ns-dark .muted,
+.ns-dark .field-label {
+  color: #9aa4b2;
+}
+
+.ns-dark .amount {
+  color: #ff6b6b;
+}
+
+.ns-dark ListView {
+  separator-color: #444;
+}
+
+.ns-dark .exp-sep {
+  border-bottom-color: #444;
+}
+
+/* ---------- Списък с колите ---------- */
 
 .car-row,
 .exp-row {
@@ -31,16 +115,25 @@ Button.-primary,
   font-weight: bold;
 }
 
-.exp-cat {
-  font-size: 16;
-  font-weight: bold;
+.car-alert {
+  color: #b86e00;
+  font-size: 13;
+  margin-top: 2;
 }
 
-.amount {
-  font-size: 16;
-  font-weight: bold;
+.car-alert-expired {
   color: #c62828;
 }
+
+.ns-dark .car-alert {
+  color: #f0a020;
+}
+
+.ns-dark .car-alert-expired {
+  color: #e5484d;
+}
+
+/* ---------- Екран на колата ---------- */
 
 .summary {
   padding: 12 16;
@@ -49,9 +142,20 @@ Button.-primary,
   border-bottom-color: #dde3ec;
 }
 
-.big {
-  font-size: 17;
+.ns-dark .summary {
+  background-color: #1c2330;
+  border-bottom-color: #2c3545;
+}
+
+.section-title {
+  margin-top: 10;
+  font-size: 13;
   font-weight: bold;
+  color: #1a5fcf;
+}
+
+.ns-dark .section-title {
+  color: #6ea8ff;
 }
 
 .cat-row {
@@ -59,9 +163,69 @@ Button.-primary,
   font-size: 14;
 }
 
-.empty {
-  padding: 30;
+.exp-cat {
+  font-size: 16;
+  font-weight: bold;
 }
+
+.doc-row {
+  padding: 3 0;
+  font-size: 14;
+}
+
+.doc-text {
+  font-size: 13;
+}
+
+/* ---------- Статуси (документи и обслужване) ---------- */
+
+.doc-ok,
+.svc-ok {
+  color: #1e7d3c;
+}
+.doc-soon,
+.svc-soon {
+  color: #b86e00;
+}
+.doc-expired,
+.svc-overdue {
+  color: #c62828;
+}
+.doc-none,
+.svc-never,
+.svc-none {
+  color: #888;
+}
+
+.ns-dark .doc-ok,
+.ns-dark .svc-ok {
+  color: #2e9e4f;
+}
+.ns-dark .doc-soon,
+.ns-dark .svc-soon {
+  color: #f0a020;
+}
+.ns-dark .doc-expired,
+.ns-dark .svc-overdue {
+  color: #e5484d;
+}
+
+/* ---------- Обслужване ---------- */
+
+.svc-row {
+  padding: 12 16;
+}
+
+.svc-dot {
+  font-size: 18;
+  margin-right: 12;
+}
+
+.svc-next {
+  font-size: 14;
+}
+
+/* ---------- Форма за разход ---------- */
 
 .form {
   padding: 16;
@@ -78,71 +242,21 @@ Button.-primary,
   padding: 8 4;
 }
 
-/* Тъмен режим */
-.ns-dark .summary {
-  background-color: #1c2330;
-  border-bottom-color: #2c3545;
+.date-field {
+  font-size: 18;
+  padding: 12 4;
+  border-bottom-width: 1;
+  border-bottom-color: #888;
 }
 
-.ns-dark .muted,
-.ns-dark .field-label {
-  color: #9aa4b2;
-}
-
-.ns-dark .amount {
-  color: #ff6b6b;
-}
-
-.bar-btn {
-  color: #ffffff;
-  font-size: 16;
+.valid-until {
   font-weight: bold;
-  padding: 0 16;
-}
-
-NavigationButton {
-  color: #ffffff;
 }
 
 .ns-dark DatePicker,
 .ns-dark ListPicker {
   color: #ffffff;
 }
-
-/* Обслужване */
-.bottom-bar {
-  padding: 6 6;
-}
-
-.bottom-bar Button {
-  margin: 4;
-}
-
-Button.-secondary-btn,
-.ns-light Button.-secondary-btn,
-.ns-dark Button.-secondary-btn {
-  font-size: 18;
-  background-color: #3a4556;
-  color: #ffffff;
-}
-
-.svc-row {
-  padding: 12 16;
-}
-
-.svc-dot {
-  font-size: 18;
-  margin-right: 12;
-}
-
-.svc-next {
-  font-size: 14;
-}
-
-.svc-ok { color: #2e9e4f; }
-.svc-soon { color: #f0a020; }
-.svc-overdue { color: #e5484d; }
-.svc-never, .svc-none { color: #888; }
 
 .part-row {
   padding: 8 4;
@@ -166,57 +280,4 @@ Button.-secondary-btn,
 .ns-dark .part-on .part-box,
 .ns-dark .part-on .part-name {
   color: #6ea8ff;
-}
-
-.date-field {
-  font-size: 18;
-  padding: 12 4;
-  border-bottom-width: 1;
-  border-bottom-color: #888;
-}
-
-/* Документи */
-.section-title {
-  margin-top: 10;
-  font-size: 13;
-  font-weight: bold;
-  color: #6ea8ff;
-}
-
-.doc-row {
-  padding: 3 0;
-  font-size: 14;
-}
-
-.doc-text {
-  font-size: 13;
-}
-
-.doc-ok { color: #2e9e4f; }
-.doc-soon { color: #f0a020; }
-.doc-expired { color: #e5484d; }
-.doc-none { color: #888; }
-
-.car-alert {
-  color: #f0a020;
-  font-size: 13;
-  margin-top: 2;
-}
-
-.valid-until {
-  font-weight: bold;
-}
-
-.bar-more {
-  font-size: 22;
-  padding: 0 14 0 4;
-}
-
-.car-alert-expired {
-  color: #e5484d;
-}
-
-.exp-sep {
-  border-bottom-width: 1;
-  border-bottom-color: #444;
 }

@@ -41,7 +41,16 @@ jobs:
         run: npm ci
 
       - name: Проверка на типовете
-        run: npx tsc --noEmit -p .
+        run: npm run typecheck
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Форматиране (Prettier)
+        run: npm run format:check
+
+      - name: Тестове
+        run: npm test
 
       - name: Проверка на средата (ns doctor)
         run: |

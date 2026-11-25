@@ -5,18 +5,18 @@ purpose of the file is to pass control to the app’s first module.
 */
 
 import { Application } from '@nativescript/core'
-import { onDataChanged } from './data/store'
 import { dbReady } from './data/db'
+import { requestReschedule } from './data/notify'
+import { onDataChanged } from './data/store'
 import { t } from './strings'
-import { rescheduleNotifications } from './data/notify'
 
 // текстовете в XML: {{ t('cars.title') }}
 Application.setResources({ ...Application.getResources(), t })
 
-// известията се преизчисляват при всяка промяна на данните и при стартиране
-onDataChanged(() => rescheduleNotifications())
+// известията се пренареждат след промяна на данните и при стартиране
+onDataChanged(requestReschedule)
 Application.on(Application.launchEvent, () => {
-  dbReady.then(() => setTimeout(() => rescheduleNotifications(), 1500))
+  dbReady.then(requestReschedule).catch((e) => console.error('dbReady', e))
 })
 
 Application.run({ moduleName: 'app-root' })

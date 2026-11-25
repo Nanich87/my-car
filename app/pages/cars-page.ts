@@ -1,67 +1,84 @@
-import { Dialogs, EventData, Frame, ItemEventData, Observable, Page } from '@nativescript/core'
-import { daysText, documentStatus, getCars, getExpenses, money, sum } from '../data/store'
-import { editCarDialog } from './car-dialog'
+import { Dialogs, Frame, ItemEventData, NavigatedData, Observable, Page } from '@nativescript/core'
 import { dbReady } from '../data/db'
+import { daysText, formatMoney } from '../data/format'
+import { documentStatus, sumCents, toIsoDate } from '../data/logic'
+import { Car, categoryLabel, DocState } from '../data/model'
 import { scheduledCount, testNotification } from '../data/notify'
+import { getCars, getExpensesByCar } from '../data/store'
 import { L } from '../strings'
+import { editCarDialog } from './car-dialog'
 
-let vm: Observable
-
-function alerts(carId: string, state: 'expired' | 'soon'): string {
-  return documentStatus(carId)
-    .filter((d) => d.state === state)
-    .map((d) => L.cars.alert(d.category, daysText(d.daysLeft!)))
-    .join('\n')
+interface CarRow extends Car {
+  totalText: string
+  countText: string
+  expiredText: string
+  soonText: string
 }
 
-function refresh() {
-  const cars = getCars().map((c) => {
-    const exps = getExpenses(c.id)
-    return {
-      ...c,
-      totalText: money(sum(exps)),
-      countText: L.cars.expenseCount(exps.length),
-      expiredText: alerts(c.id, 'expired'),
-      soonText: alerts(c.id, 'soon'),
-    }
-  })
-  vm.set('cars', cars)
-}
+class CarsViewModel extends Observable {
+  cars: CarRow[] = []
 
-export function navigatingTo(args: EventData) {
-  const page = <Page>args.object
-  if (!vm) vm = new Observable()
-  page.bindingContext = vm
-  // при първото отваряне базата може още да се отваря
-  dbReady.then(refresh).catch((e) => {
-    console.error('dbReady', e)
-    Dialogs.alert({ title: L.common.error, message: L.cars.dbError(e), okButtonText: L.common.ok })
-  })
-}
+  refresh(): void {
+    const today = toIsoDate(new Date())
+    const expensesByCar = getExpensesByCar()
+    const rows = getCars().map((car): CarRow => {
+      const exps = expensesByCar.get(car.id) ?? []
+      const docs = documentStatus(exps, today)
+      const alerts = (state: DocState) =>
+        docs
+          .filter((d) => d.state === state && d.daysLeft != null)
+          .map((d) => L.cars.alert(categoryLabel(d.category), daysText(d.daysLeft as number)))
+          .join('\n')
+      return {
+        ...car,
+        totalText: formatMoney(sumCents(exps)),
+        countText: L.cars.expenseCount(exps.length),
+        expiredText: alerts('expired'),
+        soonText: alerts('soon'),
+      }
+    })
+    this.set('cars', rows)
+  }
 
-export async function addCar() {
-  if (await editCarDialog()) refresh()
-}
+  addCar = async (): Promise<void> => {
+    if (await editCarDialog()) this.refresh()
+  }
 
-export function openCar(args: ItemEventData) {
-  const car = vm.get('cars')[args.index]
-  Frame.topmost().navigate({ moduleName: 'pages/car-page', context: { carId: car.id } })
-}
+  openCar = (args: ItemEventData): void => {
+    const car = this.cars[args.index]
+    if (car) Frame.topmost().navigate({ moduleName: 'pages/car-page', context: { carId: car.id } })
+  }
 
-export async function moreMenu() {
-  const count = await scheduledCount()
-  const choice = await Dialogs.action({
-    title: L.cars.scheduledNotifications(count),
-    cancelButtonText: L.common.close,
-    actions: [L.cars.testNotification],
-  })
-  if (choice === L.cars.testNotification) {
-    const ok = await testNotification()
-    if (!ok)
+  moreMenu = async (): Promise<void> => {
+    const count = await scheduledCount()
+    const choice = await Dialogs.action({
+      title: L.cars.scheduledNotifications(count),
+      cancelButtonText: L.common.close,
+      actions: [L.cars.testNotification],
+    })
+    if (choice === L.cars.testNotification && !(await testNotification())) {
       await Dialogs.alert({
         title: L.cars.notificationsOffTitle,
         message: L.cars.notificationsOffMessage,
         okButtonText: L.common.ok,
       })
+    }
   }
+}
+
+export function navigatingTo(args: NavigatedData): void {
+  const page = args.object as Page
+  let vm = page.bindingContext as CarsViewModel | undefined
+  if (!(vm instanceof CarsViewModel)) {
+    vm = new CarsViewModel()
+    page.bindingContext = vm
+  }
+  const model = vm
+  // при първото отваряне базата може още да се отваря
+  dbReady
+    .then(() => model.refresh())
+    .catch((e: unknown) => {
+      console.error('dbReady', e)
+      void Dialogs.alert({ title: L.common.error, message: L.cars.dbError(e), okButtonText: L.common.ok })
+    })
 }

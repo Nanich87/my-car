@@ -4,15 +4,29 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@nativescript-community/sqlite": "^4.1.2",
+    "@nativescript-community/sqlite": "4.1.2",
     "@nativescript/core": "~9.1.0",
-    "@nativescript/local-notifications": "^7.0.0",
+    "@nativescript/local-notifications": "7.0.0",
     "@nativescript/theme": "^3.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@nativescript/android": "9.1.2",
     "@nativescript/types": "~9.0.0",
     "@nativescript/webpack": "~5.0.25",
-    "typescript": "~6.0.0"
+    "@types/node": "24.19.4",
+    "eslint": "10.15.0",
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "3.10.1",
+    "typescript": "~6.0.0",
+    "typescript-eslint": "8.74.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "tsc -p tsconfig.test.json && node --test '.test-dist/tests/**/*.test.js'",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm test"
   }
 }

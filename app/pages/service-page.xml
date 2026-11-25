@@ -9,7 +9,7 @@
       <Label text="{{ t('service.hint') }}" class="muted" textWrap="true" />
     </StackLayout>
 
-    <ListView row="1" items="{{ items }}" itemTap="itemTap" separatorColor="#444">
+    <ListView row="1" items="{{ items }}" itemTap="{{ itemTap }}">
       <ListView.itemTemplate>
         <GridLayout columns="auto, *" class="svc-row">
           <Label col="0" class="{{ 'svc-dot svc-' + state }}" text="●" verticalAlignment="top" />

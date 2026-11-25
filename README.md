@@ -26,6 +26,7 @@
   - 🟢 наред
 
   Интервалите имат стойности по подразбиране и се настройват за всяка кола.
+
 - **Документи със срок:** винетка (годишна, тримесечна, месечна, седмична, уикенд), гражданска отговорност, технически преглед и каско. „Валидна до“ се изчислява автоматично от датата и срока, но може да се промени ръчно. Изтичащите документи се виждат още в списъка с колите.
 - **Известия преди изтичане:** 30, 7 и 1 ден преди и в деня на изтичане, в 10:00. Работят и при затворено приложение, а след рестарт на телефона се възстановяват.
 - **Тъмен режим** и стандартен календар на Android за избор на дата.
@@ -33,11 +34,11 @@
 
 ## Екрани
 
-| Автомобили | Кола | Разходи |
-|:---:|:---:|:---:|
-| <img src="docs/screenshots/cars.png" width="240" alt="Списък с автомобили" /> | <img src="docs/screenshots/car.png" width="240" alt="Обобщение за кола" /> | <img src="docs/screenshots/expenses.png" width="240" alt="Списък с разходи" /> |
-| **Обслужване** | **Винетка / документ** | **Известие** |
-| <img src="docs/screenshots/service.png" width="240" alt="Обслужване" /> | <img src="docs/screenshots/document.png" width="240" alt="Нов разход за винетка" /> | <img src="docs/screenshots/notification.png" width="240" alt="Известие за изтичаща винетка" /> |
+|                                  Автомобили                                   |                                        Кола                                         |                                            Разходи                                             |
+| :---------------------------------------------------------------------------: | :---------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------: |
+| <img src="docs/screenshots/cars.png" width="240" alt="Списък с автомобили" /> |     <img src="docs/screenshots/car.png" width="240" alt="Обобщение за кола" />      |         <img src="docs/screenshots/expenses.png" width="240" alt="Списък с разходи" />         |
+|                                **Обслужване**                                 |                               **Винетка / документ**                                |                                          **Известие**                                          |
+|    <img src="docs/screenshots/service.png" width="240" alt="Обслужване" />    | <img src="docs/screenshots/document.png" width="240" alt="Нов разход за винетка" /> | <img src="docs/screenshots/notification.png" width="240" alt="Известие за изтичаща винетка" /> |
 
 > Снимките са направени с демо данни.
 
@@ -49,9 +50,13 @@
 npm install
 ns run android          # на свързан телефон или емулатор
 ns build android        # APK в platforms/android/app/build/outputs/apk/
+
+npm run check           # типове, ESLint, Prettier и тестове
+npm test                # само тестовете
+npm run format          # форматиране с Prettier
 ```
 
-При всеки push в `main` и при всеки pull request [GitHub Actions](.github/workflows/build.yml) проверява типовете и сглобява debug APK, който може да се изтегли от страницата на билда (раздел *Artifacts*).
+При всеки push в `main` и при всеки pull request [GitHub Actions](.github/workflows/build.yml) проверява типовете, пуска ESLint, Prettier и тестовете и сглобява debug APK, който може да се изтегли от страницата на билда (раздел _Artifacts_).
 
 Приложението е пробвано на Android. iOS ресурсите (икона, име) са подготвени, но не е пускано на iPhone.
 
@@ -63,8 +68,11 @@ app/
   app.css                стилове (вкл. тъмен режим)
   strings.ts             всички текстове на приложението (в XML: {{ t('car.total') }})
   data/
+    model.ts             типове и константи (категории, документи, части за обслужване)
+    logic.ts             изчисления без странични ефекти: срокове, разход на гориво, обслужване
+    format.ts            форматиране за показване (1 234,56 €, 12.03.2027)
     db.ts                SQLite база: схема, миграции, транзакции
-    store.ts             коли и разходи, категории, обслужване, документи
+    store.ts             четене и записване на коли, разходи и интервали
     notify.ts            планиране на известията за изтичащи документи
   pages/
     cars-page.*          списък с автомобили
@@ -72,6 +80,7 @@ app/
     expense-page.*       добавяне / редакция на разход
     service-page.*       обслужване – кога какво е сменено
     car-dialog.ts        добавяне / редакция на кола
+tests/                   тестове на logic.ts и format.ts (node --test)
 App_Resources/           икони, име, Android / iOS настройки
 ```
 
@@ -79,8 +88,9 @@ App_Resources/           икони, име, Android / iOS настройки
 
 - Данните се пазят в SQLite база `mycar.db` чрез [`@nativescript-community/sqlite`](https://github.com/nativescript-community/sqlite) и се изтриват при деинсталиране на приложението.
   - Таблиците са `cars`, `expenses`, `expense_parts` (сменените части) и `service_intervals`. При изтриване на кола изтриването е каскадно.
-  - Схемата се версионира с `PRAGMA user_version`: всяка промяна е нов елемент в `MIGRATIONS` в `app/data/db.ts`.
+  - Категорията се пази като ключ (`fuel`, `vignette`…), а сумата – в центове (`amount_cents`), за да няма грешки от закръгляне.
+  - Схемата се версионира с `PRAGMA user_version`: всяка промяна е нова функция в `MIGRATIONS` в `app/data/db.ts`, изпълнена в транзакция.
   - При първо стартиране данните от по-старите версии (пазени в `ApplicationSettings`) се прехвърлят автоматично.
   - Използват се синхронните заявки на плъгина, които изискват NativeScript 9.1 или по-нов.
-- Известията използват [`@nativescript/local-notifications`](https://github.com/NativeScript/plugins/tree/main/packages/local-notifications). Android може да ги забави с до около час, за да пести батерия.
+- Известията използват [`@nativescript/local-notifications`](https://github.com/NativeScript/plugins/tree/main/packages/local-notifications). Android може да ги забави с до около час, за да пести батерия. Версията на плъгина е фиксирана, защото кодът заобикаля грешка в него чрез вътрешен му клас.
 - Менюто „⋮“ показва броя планирани известия и пуска тестово известие.
